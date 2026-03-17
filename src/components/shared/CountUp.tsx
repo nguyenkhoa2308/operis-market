@@ -26,16 +26,17 @@ export default function CountUp({ value, duration = 1800, delay = 0 }: CountUpPr
 
   const animate = useCallback(() => {
     if (!parsed) return;
-    const decimals = parsed.number.toString().split(".")[1]?.length ?? 0;
+    const { prefix, number, suffix } = parsed;
+    const decimals = number.toString().split(".")[1]?.length ?? 0;
     const start = performance.now();
 
     function tick(now: number) {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = easeOutCubic(progress);
-      const current = eased * parsed.number;
+      const current = eased * number;
 
-      setDisplay(`${parsed.prefix}${current.toFixed(decimals)}${parsed.suffix}`);
+      setDisplay(`${prefix}${current.toFixed(decimals)}${suffix}`);
 
       if (progress < 1) {
         requestAnimationFrame(tick);
