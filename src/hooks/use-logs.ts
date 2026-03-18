@@ -72,3 +72,46 @@ export function useUsage() {
     },
   });
 }
+
+export interface AccountUsage {
+  totalSpend: number;
+  totalRequests: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
+  dailyUsage: { date: string; spend: number }[];
+  modelUsage: { model: string; spend: number; requests: number; promptTokens: number; completionTokens: number }[];
+}
+
+export interface KeyUsageItem {
+  keyAlias: string | null;
+  keyHash: string | null;
+  keyPrefix: string | null;
+  spend: number;
+  maxBudget: number | null;
+  createdAt: string | null;
+  expiresAt: string | null;
+  models: string[];
+}
+
+export function useAccountUsage(startDate?: string, endDate?: string) {
+  return useQuery<AccountUsage>({
+    queryKey: ["logs", "account-usage", startDate, endDate],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      const res = await api.get("/logs/usage/account", { params });
+      return res.data.data;
+    },
+  });
+}
+
+export function useKeyUsage() {
+  return useQuery<KeyUsageItem[]>({
+    queryKey: ["logs", "key-usage"],
+    queryFn: async () => {
+      const res = await api.get("/logs/usage/keys");
+      return res.data.data;
+    },
+  });
+}

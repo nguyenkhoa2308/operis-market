@@ -22,10 +22,12 @@ import type { Model } from "@/types/market";
 import {
   getPlaygroundFields,
   generateStatusBars,
-  apiEndpoints,
-  requestBodyExample,
-  rootParams,
+  getApiEndpointsForCategory,
+  getRequestBodyExample,
+  getRootParamsForCategory,
+  getExamplesForCategory,
 } from "@/data/model-detail";
+import { api } from "@/lib/api";
 
 type Tab = "playground" | "examples" | "readme" | "api";
 
@@ -160,7 +162,7 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
 }
 
 /* ─── Playground Tab ─── */
-function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
+function PlaygroundTab({ category, slug, examplePrompt }: { category: string; slug: string; examplePrompt?: string }) {
   if (category === "chat") {
     return <ChatPlaygroundTab slug={slug} />;
   }
@@ -171,12 +173,45 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
     fields.forEach((f) => { if (f.defaultValue) init[f.name] = f.defaultValue; });
     return init;
   });
+
+  // Apply example prompt when set from Examples tab
+  useEffect(() => {
+    if (examplePrompt) {
+      setFormValues((v) => ({ ...v, prompt: examplePrompt }));
+    }
+  }, [examplePrompt]);
   const [inputMode, setInputMode] = useState<"form" | "json">("form");
   const [outputMode, setOutputMode] = useState<"preview" | "json">("preview");
+  const [isRunning, setIsRunning] = useState(false);
+  const [outputUrl, setOutputUrl] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
 
   const outputType = category === "image" ? "image" : category === "video" ? "video" : category === "music" ? "audio" : "text";
 
   const credits = category === "image" ? 8 : category === "video" ? 20 : category === "music" ? 10 : 2;
+
+  const handleRun = async () => {
+    if (isRunning) return;
+    setIsRunning(true);
+    setRunError(null);
+    setOutputUrl(null);
+    try {
+      if (category === "image") {
+        const res = await api.post("/chat/image-playground", {
+          model: slug,
+          prompt: formValues.prompt ?? "",
+          size: formValues.size ?? "1024x1024",
+        });
+        setOutputUrl(res.data.data?.url ?? null);
+      } else {
+        setRunError("Video/music generation coming soon.");
+      }
+    } catch (err: any) {
+      setRunError(err?.response?.data?.message ?? err.message ?? "Generation failed");
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
@@ -307,15 +342,28 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
             <div className="flex items-center justify-center gap-3 border-t border-border pt-6">
               <button
                 type="button"
+                onClick={() => {
+                  const init: Record<string, string> = {};
+                  fields.forEach((f) => { if (f.defaultValue) init[f.name] = f.defaultValue; });
+                  setFormValues(init);
+                  setOutputUrl(null);
+                  setRunError(null);
+                }}
                 className="cursor-pointer rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
               >
                 Reset
               </button>
               <button
                 type="button"
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                onClick={handleRun}
+                disabled={isRunning || !formValues.prompt?.trim()}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
-                <Zap className="size-4" />
+                {isRunning ? (
+                  <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                ) : (
+                  <Zap className="size-4" />
+                )}
                 {credits} Run
               </button>
             </div>
@@ -356,14 +404,27 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
           </span>
         </div>
 
-        {/* Placeholder output */}
-        <div className="flex aspect-video items-center justify-center rounded-xl border border-border bg-muted/20">
-          <div className="text-center">
-            <Play className="mx-auto mb-3 size-12 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">
-              Nhấn &quot;Run&quot; để tạo kết quả
-            </p>
-          </div>
+        {/* Output area */}
+        {runError && (
+          <p className="mb-3 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{runError}</p>
+        )}
+        <div className="flex aspect-video items-center justify-center rounded-xl border border-border bg-muted/20 overflow-hidden">
+          {outputUrl && outputType === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={outputUrl} alt="Generated" className="h-full w-full object-contain" />
+          ) : isRunning ? (
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">Đang tạo ảnh...</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <Play className="mx-auto mb-3 size-12 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">
+                Nhấn &quot;Run&quot; để tạo kết quả
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -371,27 +432,32 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
 }
 
 /* ─── Examples Tab ─── */
-function ExamplesTab({ modelName }: { modelName: string }) {
+function ExamplesTab({ category, onUseExample }: { category: string; onUseExample?: (prompt: string) => void }) {
+  const examples = getExamplesForCategory(category);
+
   return (
     <div className="p-6">
       <div className="rounded-xl border border-border p-6">
         <h3 className="text-lg font-bold text-foreground">Examples</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Explore different use cases and parameter configurations
+          Click an example to load it into the Playground
         </p>
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 transition-transform hover:scale-[1.02]"
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {examples.map((ex) => (
+            <button
+              key={ex.title}
+              type="button"
+              onClick={() => onUseExample?.(ex.prompt)}
+              className="group cursor-pointer rounded-xl border border-border bg-muted/20 p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5"
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-xs text-muted-foreground">Example {i}</p>
-              </div>
-              <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                {modelName.includes("Suno") ? "AUDIO" : modelName.includes("Veo") || modelName.includes("Runway") || modelName.includes("Sora") || modelName.includes("Kling") ? "VIDEO" : "IMAGE"}
-              </div>
-            </div>
+              <p className="mb-1 text-sm font-bold text-foreground group-hover:text-primary">
+                {ex.title}
+              </p>
+              <p className="mb-3 text-xs text-muted-foreground">{ex.description}</p>
+              <p className="line-clamp-3 rounded-lg bg-background/60 p-3 text-xs text-foreground/70">
+                {ex.prompt}
+              </p>
+            </button>
           ))}
         </div>
       </div>
@@ -400,7 +466,29 @@ function ExamplesTab({ modelName }: { modelName: string }) {
 }
 
 /* ─── README Tab ─── */
-function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: string; description: string }) {
+function ReadmeTab({
+  modelName,
+  slug,
+  description,
+  category,
+  pricing,
+}: {
+  modelName: string;
+  slug: string;
+  description: string;
+  category: string;
+  pricing: string;
+}) {
+  const endpointPath = category === "image"
+    ? "/v1/images/generations"
+    : category === "video"
+    ? "/v1/videos/generations"
+    : category === "music"
+    ? "/v1/music/generations"
+    : "/v1/chat/completions";
+
+  const exampleBody = getRequestBodyExample(category, slug);
+
   return (
     <div className="p-6">
       <div className="rounded-xl border border-border p-6">
@@ -420,20 +508,34 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Getting Started</h3>
-            <p className="text-sm text-muted-foreground">
-              1. Đăng ký tài khoản tại Operis Market
-            </p>
-            <p className="text-sm text-muted-foreground">
-              2. Tạo API Key tại trang quản lý
-            </p>
-            <p className="text-sm text-muted-foreground">
-              3. Sử dụng API Key để gọi endpoint
-            </p>
+            <h3 className="mb-3 text-base font-bold text-foreground">💰 Pricing</h3>
+            <div className="rounded-lg border border-border bg-muted/20 p-4">
+              <p className="text-sm text-foreground">{pricing}</p>
+            </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Rate Limits</h3>
+            <h3 className="mb-3 text-base font-bold text-foreground">🚀 Quick Start</h3>
+            <ol className="space-y-1.5 text-sm text-muted-foreground">
+              <li>1. Đăng ký tài khoản tại Operis Market</li>
+              <li>2. Nạp credits vào tài khoản</li>
+              <li>3. Tạo API Key tại trang quản lý</li>
+              <li>4. Gọi API endpoint bên dưới</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-base font-bold text-foreground">📡 API Endpoint</h3>
+            <pre className="overflow-x-auto rounded-lg bg-background-secondary p-4 text-xs text-foreground">
+              <code>{`POST ${endpointPath}
+Authorization: Bearer YOUR_API_KEY
+
+${exampleBody}`}</code>
+            </pre>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-base font-bold text-foreground">⚡ Rate Limits</h3>
             <p className="text-sm text-muted-foreground">
               Free tier: 10 requests/minute. Paid tier: 100 requests/minute.
               Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
@@ -441,7 +543,7 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Support</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">🆘 Support</h3>
             <p className="text-sm text-muted-foreground">
               Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email support@operis.market
             </p>
@@ -453,10 +555,13 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
 }
 
 /* ─── API Tab ─── */
-function ApiTab({ slug }: { slug: string }) {
+function ApiTab({ slug, category }: { slug: string; category: string }) {
+  const endpoints = getApiEndpointsForCategory(category);
   const [activeEndpoint, setActiveEndpoint] = useState(0);
   const [copied, setCopied] = useState(false);
-  const ep = apiEndpoints[activeEndpoint];
+  const ep = endpoints[activeEndpoint] ?? endpoints[0];
+  const rootParams = getRootParamsForCategory(category);
+  const requestBodyExampleStr = getRequestBodyExample(category, slug);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -474,7 +579,7 @@ function ApiTab({ slug }: { slug: string }) {
         </h3>
 
         <div className="space-y-2">
-          {apiEndpoints.map((endpoint, i) => (
+          {endpoints.map((endpoint, i) => (
             <button
               key={endpoint.name}
               type="button"
@@ -579,7 +684,7 @@ function ApiTab({ slug }: { slug: string }) {
               Request Body Structure
             </h4>
             <pre className="overflow-x-auto rounded-lg bg-background-secondary p-4 text-[13px] leading-relaxed text-foreground">
-              <code>{requestBodyExample.replace("string", slug)}</code>
+              <code>{requestBodyExampleStr}</code>
             </pre>
           </div>
 
@@ -625,6 +730,7 @@ function ApiTab({ slug }: { slug: string }) {
 export default function ModelDetailClient({ model }: { model: Model }) {
   const [activeTab, setActiveTab] = useState<Tab>("playground");
   const [copied, setCopied] = useState(false);
+  const [examplePrompt, setExamplePrompt] = useState<string | undefined>(undefined);
 
   const handleCopyName = () => {
     navigator.clipboard.writeText(model.slug);
@@ -771,17 +877,29 @@ export default function ModelDetailClient({ model }: { model: Model }) {
       {/* Tab content */}
       <div className="rounded-b-xl border-x border-b border-border">
         {isApiTab ? (
-          <ApiTab slug={model.slug} />
+          <ApiTab slug={model.slug} category={model.category} />
         ) : (
           <>
             <div id="playground" ref={(el) => { sectionRefs.current.playground = el; }} className="scroll-mt-[120px]">
-              <PlaygroundTab category={model.category} slug={model.slug} />
+              <PlaygroundTab category={model.category} slug={model.slug} examplePrompt={examplePrompt} />
             </div>
             <div id="examples" ref={(el) => { sectionRefs.current.examples = el; }} className="scroll-mt-[120px] border-t border-border">
-              <ExamplesTab modelName={model.name} />
+              <ExamplesTab
+                category={model.category}
+                onUseExample={(prompt) => {
+                  setExamplePrompt(prompt);
+                  sectionRefs.current.playground?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              />
             </div>
             <div id="readme" ref={(el) => { sectionRefs.current.readme = el; }} className="scroll-mt-[120px] border-t border-border">
-              <ReadmeTab modelName={model.name} slug={model.slug} description={model.description} />
+              <ReadmeTab
+                modelName={model.name}
+                slug={model.slug}
+                description={model.description}
+                category={model.category}
+                pricing={model.pricing}
+              />
             </div>
           </>
         )}

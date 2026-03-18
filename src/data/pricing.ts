@@ -25,79 +25,170 @@ export const pricingCategoryTabs: { id: "all" | PricingCategory; label: string }
 ];
 
 export const pricingGroups: PricingGroup[] = [
+  // ── BytePlus Coding Plan ──
   {
-    id: "gpt-4o",
-    model: "GPT-4o",
+    id: "kimi-k2.5",
+    model: "Kimi K2.5",
     tiers: [
-      { name: "GPT-4o Input", category: "chat", provider: "OpenAI", credits: 1000, creditUnit: "1K tokens", ourPrice: 2.0, marketPrice: 2.5 },
-      { name: "GPT-4o Output", category: "chat", provider: "OpenAI", credits: 1000, creditUnit: "1K tokens", ourPrice: 6.0, marketPrice: 7.5 },
+      { name: "Kimi K2.5 Input", category: "chat", provider: "BytePlus", credits: 1, creditUnit: "1K tokens", ourPrice: 1, marketPrice: 2 },
+      { name: "Kimi K2.5 Output", category: "chat", provider: "BytePlus", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
     ],
   },
   {
-    id: "claude-3-5-sonnet",
-    model: "Claude 3.5 Sonnet",
+    id: "kimi-k2-thinking",
+    model: "Kimi K2 Thinking",
     tiers: [
-      { name: "Claude Sonnet Input", category: "chat", provider: "Anthropic", credits: 1000, creditUnit: "1K tokens", ourPrice: 3.0, marketPrice: 3.0 },
-      { name: "Claude Sonnet Output", category: "chat", provider: "Anthropic", credits: 1000, creditUnit: "1K tokens", ourPrice: 15.0, marketPrice: 15.0 },
+      { name: "Kimi K2 Thinking Input", category: "chat", provider: "BytePlus", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
+      { name: "Kimi K2 Thinking Output", category: "chat", provider: "BytePlus", credits: 3, creditUnit: "1K tokens", ourPrice: 3, marketPrice: 6 },
     ],
   },
   {
-    id: "gemini-2-flash",
-    model: "Gemini 2.0 Flash",
+    id: "gpt-oss-120b",
+    model: "GPT OSS 120B",
     tiers: [
-      { name: "Gemini Flash Input", category: "chat", provider: "Google", credits: 1000, creditUnit: "1K tokens", ourPrice: 0.075, marketPrice: 0.1 },
-      { name: "Gemini Flash Output", category: "chat", provider: "Google", credits: 1000, creditUnit: "1K tokens", ourPrice: 0.3, marketPrice: 0.4 },
+      { name: "GPT OSS 120B Input", category: "chat", provider: "BytePlus", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
+      { name: "GPT OSS 120B Output", category: "chat", provider: "BytePlus", credits: 4, creditUnit: "1K tokens", ourPrice: 4, marketPrice: 8 },
     ],
   },
   {
-    id: "llama-3-1-405b",
-    model: "Llama 3.1 405B",
+    id: "bytedance-seed-code",
+    model: "ByteDance Seed Code",
     tiers: [
-      { name: "Llama 405B Input", category: "chat", provider: "Meta", credits: 1000, creditUnit: "1K tokens", ourPrice: 2.0, marketPrice: 3.0 },
-      { name: "Llama 405B Output", category: "chat", provider: "Meta", credits: 1000, creditUnit: "1K tokens", ourPrice: 6.0, marketPrice: 8.0 },
+      { name: "Seed Code Input", category: "chat", provider: "BytePlus", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
+      { name: "Seed Code Output", category: "chat", provider: "BytePlus", credits: 3, creditUnit: "1K tokens", ourPrice: 3, marketPrice: 6 },
     ],
   },
   {
-    id: "dall-e-3",
-    model: "DALL-E 3",
+    id: "glm-4.7",
+    model: "GLM-4.7",
     tiers: [
-      { name: "DALL-E 3 Standard", category: "image", provider: "OpenAI", credits: 1, creditUnit: "image", ourPrice: 8.0, marketPrice: 10.0 },
-      { name: "DALL-E 3 HD", category: "image", provider: "OpenAI", credits: 1, creditUnit: "image", ourPrice: 12.0, marketPrice: 15.0 },
+      { name: "GLM-4.7 Input", category: "chat", provider: "BytePlus", credits: 1, creditUnit: "1K tokens", ourPrice: 1, marketPrice: 2 },
+      { name: "GLM-4.7 Output", category: "chat", provider: "BytePlus", credits: 1, creditUnit: "1K tokens", ourPrice: 1, marketPrice: 2 },
     ],
   },
   {
-    id: "stable-diffusion-xl",
-    model: "Stable Diffusion XL",
+    id: "deepseek-v3.2",
+    model: "DeepSeek V3.2",
     tiers: [
-      { name: "SDXL Standard", category: "image", provider: "Stability AI", credits: 1, creditUnit: "image", ourPrice: 4.0, marketPrice: 6.0 },
+      { name: "DeepSeek V3.2 Input", category: "chat", provider: "BytePlus", credits: 1, creditUnit: "1K tokens", ourPrice: 1, marketPrice: 2 },
+      { name: "DeepSeek V3.2 Output", category: "chat", provider: "BytePlus", credits: 1, creditUnit: "1K tokens", ourPrice: 1, marketPrice: 2 },
+    ],
+  },
+  // ── KIE.AI Chat ──
+  {
+    id: "gemini-2.5-flash",
+    model: "Gemini 2.5 Flash",
+    tiers: [
+      { name: "Gemini 2.5 Flash Input", category: "chat", provider: "KIE.AI", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
+      { name: "Gemini 2.5 Flash Output", category: "chat", provider: "KIE.AI", credits: 4, creditUnit: "1K tokens", ourPrice: 4, marketPrice: 8 },
     ],
   },
   {
-    id: "midjourney-v6",
-    model: "Midjourney v6",
+    id: "gemini-2.5-pro",
+    model: "Gemini 2.5 Pro",
     tiers: [
-      { name: "Midjourney v6", category: "image", provider: "Midjourney", credits: 1, creditUnit: "image", ourPrice: 12.0, marketPrice: 15.0 },
+      { name: "Gemini 2.5 Pro Input", category: "chat", provider: "KIE.AI", credits: 4, creditUnit: "1K tokens", ourPrice: 4, marketPrice: 8 },
+      { name: "Gemini 2.5 Pro Output", category: "chat", provider: "KIE.AI", credits: 8, creditUnit: "1K tokens", ourPrice: 8, marketPrice: 16 },
     ],
   },
   {
-    id: "runway-gen3-alpha",
-    model: "Runway Gen-3 Alpha",
+    id: "claude-sonnet-4-5",
+    model: "Claude Sonnet 4.5",
     tiers: [
-      { name: "Runway Gen-3 5s", category: "video", provider: "Runway", credits: 1, creditUnit: "5s clip", ourPrice: 50.0, marketPrice: 65.0 },
+      { name: "Claude Sonnet 4.5 Input", category: "chat", provider: "KIE.AI", credits: 3, creditUnit: "1K tokens", ourPrice: 3, marketPrice: 6 },
+      { name: "Claude Sonnet 4.5 Output", category: "chat", provider: "KIE.AI", credits: 6, creditUnit: "1K tokens", ourPrice: 6, marketPrice: 12 },
     ],
   },
   {
-    id: "sora",
-    model: "Sora",
+    id: "claude-opus-4-5",
+    model: "Claude Opus 4.5",
     tiers: [
-      { name: "Sora 10s", category: "video", provider: "OpenAI", credits: 1, creditUnit: "10s clip", ourPrice: 100.0, marketPrice: 120.0 },
+      { name: "Claude Opus 4.5 Input", category: "chat", provider: "KIE.AI", credits: 8, creditUnit: "1K tokens", ourPrice: 8, marketPrice: 16 },
+      { name: "Claude Opus 4.5 Output", category: "chat", provider: "KIE.AI", credits: 16, creditUnit: "1K tokens", ourPrice: 16, marketPrice: 32 },
     ],
   },
   {
-    id: "suno-v3-5",
-    model: "Suno v3.5",
+    id: "gpt-5-4",
+    model: "GPT-5.4",
     tiers: [
-      { name: "Suno Song", category: "music", provider: "Suno", credits: 1, creditUnit: "song", ourPrice: 20.0, marketPrice: 25.0 },
+      { name: "GPT-5.4 Input", category: "chat", provider: "KIE.AI", credits: 5, creditUnit: "1K tokens", ourPrice: 5, marketPrice: 10 },
+      { name: "GPT-5.4 Output", category: "chat", provider: "KIE.AI", credits: 10, creditUnit: "1K tokens", ourPrice: 10, marketPrice: 20 },
+    ],
+  },
+  {
+    id: "openai-codex",
+    model: "OpenAI Codex",
+    tiers: [
+      { name: "Codex Input", category: "chat", provider: "KIE.AI", credits: 3, creditUnit: "1K tokens", ourPrice: 3, marketPrice: 6 },
+      { name: "Codex Output", category: "chat", provider: "KIE.AI", credits: 6, creditUnit: "1K tokens", ourPrice: 6, marketPrice: 12 },
+    ],
+  },
+  {
+    id: "gemini-3-flash",
+    model: "Gemini 3 Flash",
+    tiers: [
+      { name: "Gemini 3 Flash Input", category: "chat", provider: "KIE.AI", credits: 2, creditUnit: "1K tokens", ourPrice: 2, marketPrice: 4 },
+      { name: "Gemini 3 Flash Output", category: "chat", provider: "KIE.AI", credits: 4, creditUnit: "1K tokens", ourPrice: 4, marketPrice: 8 },
+    ],
+  },
+  {
+    id: "gemini-3-pro",
+    model: "Gemini 3 Pro",
+    tiers: [
+      { name: "Gemini 3 Pro Input", category: "chat", provider: "KIE.AI", credits: 4, creditUnit: "1K tokens", ourPrice: 4, marketPrice: 8 },
+      { name: "Gemini 3 Pro Output", category: "chat", provider: "KIE.AI", credits: 8, creditUnit: "1K tokens", ourPrice: 8, marketPrice: 16 },
+    ],
+  },
+  {
+    id: "gemini-3.1-pro",
+    model: "Gemini 3.1 Pro",
+    tiers: [
+      { name: "Gemini 3.1 Pro Input", category: "chat", provider: "KIE.AI", credits: 5, creditUnit: "1K tokens", ourPrice: 5, marketPrice: 10 },
+      { name: "Gemini 3.1 Pro Output", category: "chat", provider: "KIE.AI", credits: 10, creditUnit: "1K tokens", ourPrice: 10, marketPrice: 20 },
+    ],
+  },
+  // ── KIE.AI Image ──
+  {
+    id: "nano-banana-2",
+    model: "Nano Banana 2",
+    tiers: [
+      { name: "Nano Banana 2", category: "image", provider: "KIE.AI", credits: 10, creditUnit: "image", ourPrice: 10, marketPrice: 15 },
+    ],
+  },
+  {
+    id: "nano-banana-pro",
+    model: "Nano Banana Pro",
+    tiers: [
+      { name: "Nano Banana Pro", category: "image", provider: "KIE.AI", credits: 20, creditUnit: "image", ourPrice: 20, marketPrice: 30 },
+    ],
+  },
+  {
+    id: "grok-imagine",
+    model: "Grok Imagine",
+    tiers: [
+      { name: "Grok Imagine", category: "image", provider: "KIE.AI", credits: 15, creditUnit: "image", ourPrice: 15, marketPrice: 20 },
+    ],
+  },
+  {
+    id: "midjourney",
+    model: "Midjourney",
+    tiers: [
+      { name: "Midjourney", category: "image", provider: "KIE.AI", credits: 25, creditUnit: "image", ourPrice: 25, marketPrice: 35 },
+    ],
+  },
+  // ── KIE.AI Video ──
+  {
+    id: "seedance-1.5-pro",
+    model: "Seedance 1.5 Pro",
+    tiers: [
+      { name: "Seedance 1.5 Pro", category: "video", provider: "KIE.AI", credits: 50, creditUnit: "clip", ourPrice: 50, marketPrice: 65 },
+    ],
+  },
+  {
+    id: "sora-2-pro",
+    model: "Sora 2 Pro",
+    tiers: [
+      { name: "Sora 2 Pro", category: "video", provider: "KIE.AI", credits: 100, creditUnit: "clip", ourPrice: 100, marketPrice: 120 },
     ],
   },
 ];
