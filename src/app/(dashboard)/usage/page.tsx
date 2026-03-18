@@ -152,7 +152,7 @@ function PerKeyTab() {
                   <td className="py-2.5">
                     {k.keyPrefix ? (
                       <code className="rounded bg-muted/60 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
-                        sk-{k.keyPrefix}...
+                        {k.keyPrefix}...
                       </code>
                     ) : (
                       <span className="text-muted-foreground">—</span>

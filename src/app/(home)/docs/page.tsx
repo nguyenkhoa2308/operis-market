@@ -31,7 +31,7 @@ const QUICKSTART_CODE = [
   {
     label: "cURL",
     code: `curl https://api.operis.vn/api/chat/completions \\
-  -H "Authorization: Bearer om_your_api_key" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "gemini-2.5-flash",
@@ -45,7 +45,7 @@ const QUICKSTART_CODE = [
     code: `from openai import OpenAI
 
 client = OpenAI(
-    api_key="om_your_api_key",
+    api_key="YOUR_API_KEY",
     base_url="https://api.operis.vn/api/chat"
 )
 
@@ -63,7 +63,7 @@ print(response.choices[0].message.content)`,
     code: `import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: "om_your_api_key",
+  apiKey: "YOUR_API_KEY",
   baseURL: "https://api.operis.vn/api/chat",
 });
 
@@ -81,7 +81,7 @@ const AUTH_CODE = [
     label: "cURL",
     code: `# Thêm API key vào header Authorization
 curl https://api.operis.vn/api/chat/completions \\
-  -H "Authorization: Bearer om_your_api_key" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{ ... }'`,
   },
@@ -100,7 +100,7 @@ client = OpenAI(
     label: "JavaScript",
     code: `import OpenAI from "openai";
 
-// Lưu key trong .env: OPERIS_API_KEY=om_...
+// Lưu key trong .env: OPERIS_API_KEY=your_key_here
 const client = new OpenAI({
   apiKey: process.env.OPERIS_API_KEY,
   baseURL: "https://api.operis.vn/api/chat",
@@ -112,7 +112,7 @@ const CHAT_BASIC_CODE = [
   {
     label: "cURL",
     code: `curl https://api.operis.vn/api/chat/completions \\
-  -H "Authorization: Bearer om_your_api_key" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "gemini-2.5-pro",
@@ -178,7 +178,7 @@ const CHAT_STREAM_CODE = [
   {
     label: "cURL",
     code: `curl https://api.operis.vn/api/chat/completions \\
-  -H "Authorization: Bearer om_your_api_key" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   --no-buffer \\
   -d '{
@@ -222,7 +222,7 @@ const MODELS_CODE = [
   {
     label: "cURL",
     code: `curl https://api.operis.vn/api/chat/models \\
-  -H "Authorization: Bearer om_your_api_key"`,
+  -H "Authorization: Bearer YOUR_API_KEY"`,
   },
   {
     label: "Python",
@@ -245,7 +245,7 @@ const EXAMPLE_CHATBOT_CODE = [
     code: `from openai import OpenAI
 
 client = OpenAI(
-    api_key="om_your_api_key",
+    api_key="YOUR_API_KEY",
     base_url="https://api.operis.vn/api/chat"
 )
 
@@ -472,11 +472,10 @@ export default function DocsPage() {
               </p>
               <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
                 <p className="text-sm font-medium text-foreground">Format header</p>
-                <InlineCode>Authorization: Bearer om_your_api_key</InlineCode>
+                <InlineCode>Authorization: Bearer YOUR_API_KEY</InlineCode>
                 <div className="space-y-2 text-sm text-muted-foreground pt-1">
                   <p>
-                    API key bắt đầu bằng{" "}
-                    <InlineCode>om_</InlineCode> (Operis Market). Không chia sẻ key — chỉ hiển thị một lần khi tạo.
+                    Không chia sẻ key — chỉ hiển thị một lần khi tạo.
                   </p>
                   <p>
                     Luôn lưu key trong biến môi trường, không hardcode vào source code.
