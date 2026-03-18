@@ -620,7 +620,7 @@ export default function ApiKeysPage() {
                 {/* Key */}
                 <div className="flex items-center gap-2">
                   <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
-                    om_{apiKey.keyPrefix}••••••••••••••••••••••••
+                    sk-{apiKey.keyPrefix}••••••••••••••••••••••••
                   </code>
                 </div>
 
@@ -696,7 +696,7 @@ export default function ApiKeysPage() {
                     {/* Key */}
                     <td className="px-5 py-4">
                       <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
-                        om_{apiKey.keyPrefix}••••••••••••••••••••••••
+                        sk-{apiKey.keyPrefix}••••••••••••••••••••••••
                       </code>
                     </td>
 
