@@ -38,7 +38,9 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0 || currentResponse) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, currentResponse]);
 
   const handleSend = () => {
@@ -721,13 +723,19 @@ export default function ModelDetailClient({
 
   const scrollSections = ["playground", "examples", "readme"] as const;
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const isApiTab = activeTab === "api";
 
   // Scroll-spy: update active tab based on scroll position
   useEffect(() => {
     if (isApiTab || !model) return;
+    let hasScrolled = false;
+    const onScroll = () => { hasScrolled = true; };
+    window.addEventListener("scroll", onScroll, { once: true });
+
     const observer = new IntersectionObserver(
       (entries) => {
+        if (!hasScrolled) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setActiveTab(entry.target.id as Tab);
@@ -740,7 +748,11 @@ export default function ModelDetailClient({
       const el = sectionRefs.current[id];
       if (el) observer.observe(el);
     });
-    return () => observer.disconnect();
+    observerRef.current = observer;
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+    };
   }, [isApiTab, model]);
 
   const handleTabClick = useCallback(
