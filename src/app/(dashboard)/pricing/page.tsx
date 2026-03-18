@@ -362,9 +362,6 @@ export default function PricingPage() {
                             >
                               {tier.category}
                             </span>
-                            <span className="text-xs text-muted-foreground">
-                              {tier.provider}
-                            </span>
                           </div>
                         </div>
                       </td>
@@ -424,7 +421,6 @@ export default function PricingPage() {
                         {tier.category}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">{tier.provider}</div>
                     <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/20 px-3 py-2">
                       <div>
                         <div className="text-[10px] text-muted-foreground">Credits</div>

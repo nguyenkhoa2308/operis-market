@@ -80,13 +80,12 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => api.post("/auth/logout"),
     onSuccess: () => {
-      queryClient.cancelQueries();
-      queryClient.removeQueries();
+      queryClient.clear();
+      // Full page reload ensures React tree is fully rebuilt with no stale auth state
       if (protectedPaths.some((p) => pathname.startsWith(p))) {
-        router.push("/login");
+        window.location.href = "/login";
       } else {
-        router.push("/");
-        router.refresh();
+        window.location.href = "/";
       }
     },
   });
