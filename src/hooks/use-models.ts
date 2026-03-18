@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Model, BannerSlide } from "@/types/market";
+import type { Model, ModelDetail, BannerSlide } from "@/types/market";
 
 export function useModels(params: {
   q?: string;
@@ -58,14 +58,15 @@ export function useFilters() {
   });
 }
 
-export function useModelDetail(slug: string) {
-  return useQuery({
+export function useModelDetail(slug: string, initialData?: ModelDetail) {
+  return useQuery<ModelDetail>({
     queryKey: ["models", slug],
     queryFn: async () => {
       const res = await api.get(`/models/${slug}`);
       return res.data.data;
     },
     enabled: !!slug,
+    initialData,
   });
 }
 

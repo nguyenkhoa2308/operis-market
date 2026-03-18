@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import dynamic from "next/dynamic";
 import {
   RefreshCw,
@@ -52,13 +53,15 @@ export default function LogsPage() {
   const [activeTab, setActiveTab] = useState("Market");
   const [statusFilter, setStatusFilter] = useState("");
   const [searchModel, setSearchModel] = useState("");
+  const debouncedModel = useDebounce(searchModel);
   const [searchTaskId, setSearchTaskId] = useState("");
+  const debouncedTaskId = useDebounce(searchTaskId);
   const [showAlert, setShowAlert] = useState(true);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const { data: logsData, isLoading, refetch } = useLogs({
-    model: searchModel || undefined,
+    model: debouncedModel || undefined,
     status: statusFilter || undefined,
     page: 1,
     limit: 50,
@@ -66,8 +69,8 @@ export default function LogsPage() {
   const logEntries = logsData?.data ?? [];
 
   // Client-side filter for task ID only (model + status handled by API)
-  const filtered = searchTaskId
-    ? logEntries.filter((log) => log.taskId.toLowerCase().includes(searchTaskId.toLowerCase()))
+  const filtered = debouncedTaskId
+    ? logEntries.filter((log) => log.taskId.toLowerCase().includes(debouncedTaskId.toLowerCase()))
     : logEntries;
 
   const toggleRow = (id: string) => {

@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Search, Clock, Tag, ChevronDown } from "lucide-react";
 import { useUpdates, useUpdateTags } from "@/hooks/use-updates";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function ApiUpdatesPage() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [selectedTag, setSelectedTag] = useState("All APIs");
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
 
@@ -16,7 +18,7 @@ export default function ApiUpdatesPage() {
 
   const filtered = allUpdates.filter((update) => {
     if (selectedTag !== "All APIs" && update.tag !== selectedTag) return false;
-    if (search && !update.title.toLowerCase().includes(search.toLowerCase()) && !update.content.toLowerCase().includes(search.toLowerCase())) return false;
+    if (debouncedSearch && !update.title.toLowerCase().includes(debouncedSearch.toLowerCase()) && !update.content.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
     return true;
   });
 
