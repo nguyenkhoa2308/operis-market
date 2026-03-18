@@ -70,6 +70,12 @@ function Modal({
   );
 }
 
+/* ─── Key name validation: không dấu cách, chỉ a-zA-Z0-9_-/. ─── */
+const KEY_NAME_REGEX = /^[a-zA-Z0-9_\-/.]+$/;
+function isValidKeyName(name: string): boolean {
+  return KEY_NAME_REGEX.test(name);
+}
+
 /* ─── Create API Key Modal ─── */
 function CreateKeyModal({
   open,
@@ -83,10 +89,16 @@ function CreateKeyModal({
   isPending: boolean;
 }) {
   const [name, setName] = useState("");
+  const trimmed = name.trim();
+  const nameError = trimmed.length > 0 && !isValidKeyName(trimmed)
+    ? "Tên không được chứa dấu cách. Chỉ cho phép chữ cái, số, gạch ngang (-), gạch dưới (_), dấu chấm (.)"
+    : trimmed.length > 255
+      ? "Tên tối đa 255 ký tự"
+      : null;
 
   const handleSubmit = () => {
-    if (!name.trim()) return;
-    onCreate(name.trim());
+    if (!trimmed || nameError) return;
+    onCreate(trimmed);
   };
 
   return (
@@ -98,12 +110,22 @@ function CreateKeyModal({
         </label>
         <input
           type="text"
-          placeholder="Nhập tên API Key"
+          placeholder="vd: my-project-key"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="w-full rounded-lg border border-border bg-background-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className={`w-full rounded-lg border bg-background-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none ${
+            nameError ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+          }`}
         />
+        {nameError && (
+          <p className="mt-1.5 text-xs text-destructive">{nameError}</p>
+        )}
+        {!nameError && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Không dấu cách. Cho phép: chữ cái, số, gạch ngang, gạch dưới, dấu chấm
+          </p>
+        )}
       </div>
       <div className="mt-6 flex justify-end gap-3">
         <button
@@ -117,7 +139,7 @@ function CreateKeyModal({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isPending || !name.trim()}
+          disabled={isPending || !trimmed || !!nameError}
           className="cursor-pointer rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? "Đang tạo..." : "Tạo"}
@@ -435,10 +457,16 @@ function EditKeyModal({
   isPending: boolean;
 }) {
   const [name, setName] = useState(currentName);
+  const trimmed = name.trim();
+  const nameError = trimmed.length > 0 && !isValidKeyName(trimmed)
+    ? "Tên không được chứa dấu cách. Chỉ cho phép chữ cái, số, gạch ngang (-), gạch dưới (_), dấu chấm (.)"
+    : trimmed.length > 255
+      ? "Tên tối đa 255 ký tự"
+      : null;
 
   const handleSubmit = () => {
-    if (!name.trim() || name.trim() === currentName) return;
-    onSave(name.trim());
+    if (!trimmed || trimmed === currentName || nameError) return;
+    onSave(trimmed);
   };
 
   return (
@@ -450,12 +478,17 @@ function EditKeyModal({
         </label>
         <input
           type="text"
-          placeholder="Nhập tên API Key"
+          placeholder="vd: my-project-key"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="w-full rounded-lg border border-border bg-background-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className={`w-full rounded-lg border bg-background-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none ${
+            nameError ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+          }`}
         />
+        {nameError && (
+          <p className="mt-1.5 text-xs text-destructive">{nameError}</p>
+        )}
       </div>
       <div className="mt-6 flex justify-end gap-3">
         <button
@@ -469,7 +502,7 @@ function EditKeyModal({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isPending || !name.trim() || name.trim() === currentName}
+          disabled={isPending || !trimmed || trimmed === currentName || !!nameError}
           className="cursor-pointer rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? "Đang lưu..." : "Lưu"}
@@ -529,9 +562,9 @@ export default function ApiKeysPage() {
         setRevealOpen(true);
         toast.success("Tạo API Key thành công");
       },
-      onError: () => {
-        setCreateOpen(false);
-        toast.error("Không thể tạo API Key");
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || "Không thể tạo API Key";
+        toast.error(msg);
       },
     });
   };
@@ -542,9 +575,10 @@ export default function ApiKeysPage() {
         setDeleteTarget({ open: false, id: "", name: "" });
         toast.success("Đã xoá API Key");
       },
-      onError: () => {
+      onError: (err: any) => {
         setDeleteTarget({ open: false, id: "", name: "" });
-        toast.error("Không thể xoá API Key");
+        const msg = err?.response?.data?.message || "Không thể xoá API Key";
+        toast.error(msg);
       },
     });
   };
