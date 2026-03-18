@@ -284,6 +284,7 @@ body {
   mix-blend-mode: normal;
 }
 
+
 /* Decorative patterns */
 .bg-grid-dots {
   background-image: radial-gradient(circle, currentColor 1px, transparent 1px);

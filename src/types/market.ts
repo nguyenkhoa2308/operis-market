@@ -12,10 +12,46 @@ export interface Model {
   tags: string[];
   taskTags: string[];
   pricing: string;
+  pricingDisplay?: string;
   image?: string;
   gradient: string;
   isNew?: boolean;
   isPopular?: boolean;
+}
+
+export interface ModelFieldOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface ModelPlaygroundField {
+  id: string;
+  name: string;
+  label: string;
+  type: "textarea" | "select" | "options" | "toggle" | "file" | "number";
+  description: string | null;
+  required: boolean;
+  placeholder: string | null;
+  defaultValue: string | null;
+  sortOrder: number;
+  modelFieldOptions: ModelFieldOption[];
+}
+
+export interface ModelPricingTier {
+  id: string;
+  name: string;
+  category: string;
+  provider: string;
+  credits: number;
+  creditUnit: string;
+  ourPrice: number;
+  marketPrice: number | null;
+}
+
+export interface ModelDetail extends Model {
+  modelPlaygroundFields: ModelPlaygroundField[];
+  modelPricingTiers: ModelPricingTier[];
 }
 
 export interface BannerSlide {

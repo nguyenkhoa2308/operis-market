@@ -1,19 +1,28 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { models } from "@/data/models";
 import ModelDetailClient from "@/components/model-detail/ModelDetailClient";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return models.map((model) => ({ slug: model.slug }));
+async function getModel(slug: string) {
+  try {
+    const res = await fetch(`${API_BASE}/models/${slug}`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const model = models.find((m) => m.slug === slug);
+  const model = await getModel(slug);
   if (!model) return {};
 
   return {
@@ -29,35 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ModelDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const model = models.find((m) => m.slug === slug);
+  const model = await getModel(slug);
 
-  if (!model) {
-    notFound();
-  }
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: model.name,
-    description: model.description,
-    brand: { "@type": "Organization", name: model.provider },
-    url: `https://operis.market/${model.slug}`,
-    ...(model.image && { image: `https://operis.market${model.image}` }),
-    offers: {
-      "@type": "Offer",
-      price: model.pricing,
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-    },
-  };
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ModelDetailClient model={model} />
-    </>
-  );
+  return <ModelDetailClient slug={slug} initialData={model ?? undefined} />;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
 import { useModels, useFilters } from "@/hooks/use-models";
@@ -9,7 +10,10 @@ import ModelCardSkeleton from "./ModelCardSkeleton";
 
 type FilterTab = "tasks" | "providers";
 
-const categoryColors: Record<string, { text: string; activeBg: string; activeBorder: string }> = {
+const categoryColors: Record<
+  string,
+  { text: string; activeBg: string; activeBorder: string }
+> = {
   "video-generation": {
     text: "text-blue-400",
     activeBg: "bg-blue-500 text-white border-blue-500",
@@ -39,9 +43,12 @@ export default function MarketContent() {
     new Set(),
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const { data: modelsData, isLoading: modelsLoading } = useModels({ limit: 100 });
+  const { data: modelsData, isLoading: modelsLoading } = useModels({
+    limit: 100,
+  });
   const { data: filtersData } = useFilters();
   const allModels = modelsData?.data ?? [];
   const taskCategories = filtersData?.categories ?? [];
@@ -86,8 +93,8 @@ export default function MarketContent() {
       if (selectedProviders.size > 0) {
         if (!selectedProviders.has(model.provider)) return false;
       }
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         return (
           model.name.toLowerCase().includes(q) ||
           model.provider.toLowerCase().includes(q) ||
@@ -96,102 +103,110 @@ export default function MarketContent() {
       }
       return true;
     });
-  }, [allModels, selectedTags, selectedProviders, searchQuery]);
+  }, [allModels, selectedTags, selectedProviders, debouncedSearch]);
 
   return (
     <div className="flex gap-6">
       {/* Sidebar filter */}
-      <FadeIn direction="left" distance={20} duration={400} className="hidden lg:block">
-      <aside className="w-[300px] shrink-0 self-start rounded-2xl border border-border p-5 lg:sticky lg:top-6">
-        {/* Tabs */}
-        <div className="mb-6 inline-flex rounded-full border border-border p-0.5">
-          <button
-            type="button"
-            onClick={() => setActiveTab("tasks")}
-            className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
-              activeTab === "tasks"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Tasks ({taskCount})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("providers")}
-            className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
-              activeTab === "providers"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Providers ({providerList.length})
-          </button>
-        </div>
-
-        {/* Tasks tab */}
-        {activeTab === "tasks" && (
-          <nav className="space-y-6">
-            {taskCategories.map((category) => {
-              const colors = categoryColors[category.id];
-              return (
-                <div key={category.id}>
-                  <h4 className={`mb-3 text-sm font-bold ${colors?.text ?? "text-foreground"}`}>
-                    {category.label}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {category.options.map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => handleTagToggle(option.id)}
-                        className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
-                          selectedTags.has(option.id)
-                            ? colors?.activeBg ?? "border-primary bg-primary text-primary-foreground"
-                            : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </nav>
-        )}
-
-        {/* Providers tab */}
-        {activeTab === "providers" && (
-          <div className="flex flex-wrap gap-2">
-            {providerList.map((provider) => (
-              <button
-                key={provider}
-                type="button"
-                onClick={() => handleProviderToggle(provider)}
-                className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
-                  selectedProviders.has(provider)
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                }`}
-              >
-                {provider}
-              </button>
-            ))}
+      <FadeIn
+        direction="left"
+        distance={20}
+        duration={400}
+        className="hidden lg:block"
+      >
+        <aside className="w-[300px] shrink-0 self-start rounded-2xl border border-border p-5 lg:sticky lg:top-6">
+          {/* Tabs */}
+          <div className="mb-6 inline-flex rounded-full border border-border p-0.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab("tasks")}
+              className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                activeTab === "tasks"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Tasks ({taskCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("providers")}
+              className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                activeTab === "providers"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Providers ({providerList.length})
+            </button>
           </div>
-        )}
 
-        {/* Clear all */}
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="mt-6 cursor-pointer text-sm font-medium text-primary transition-colors hover:text-primary-hover"
-          >
-            Xoá bộ lọc
-          </button>
-        )}
-      </aside>
+          {/* Tasks tab */}
+          {activeTab === "tasks" && (
+            <nav className="space-y-6">
+              {taskCategories.map((category) => {
+                const colors = categoryColors[category.id];
+                return (
+                  <div key={category.id}>
+                    <h4
+                      className={`mb-3 text-sm font-bold ${colors?.text ?? "text-foreground"}`}
+                    >
+                      {category.label}
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {category.options.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => handleTagToggle(option.id)}
+                          className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                            selectedTags.has(option.id)
+                              ? (colors?.activeBg ??
+                                "border-primary bg-primary text-primary-foreground")
+                              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* Providers tab */}
+          {activeTab === "providers" && (
+            <div className="flex flex-wrap gap-2">
+              {providerList.map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={() => handleProviderToggle(provider)}
+                  className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                    selectedProviders.has(provider)
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                  }`}
+                >
+                  {provider}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Clear all */}
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="mt-6 cursor-pointer text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+            >
+              Xoá bộ lọc
+            </button>
+          )}
+        </aside>
       </FadeIn>
 
       {/* Main content */}
@@ -200,7 +215,9 @@ export default function MarketContent() {
         <div className="mb-5 space-y-3">
           <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-xl font-bold text-foreground">Tất cả Models</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                Tất cả Models
+              </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Tìm thấy {filteredModels.length} model
               </p>
@@ -238,7 +255,9 @@ export default function MarketContent() {
         {hasFilters && (
           <div className="mb-3 flex flex-wrap gap-1.5 lg:hidden">
             {[...selectedTags].map((tagId) => {
-              const label = taskCategories.flatMap((c) => c.options).find((o) => o.id === tagId)?.label;
+              const label = taskCategories
+                .flatMap((c) => c.options)
+                .find((o) => o.id === tagId)?.label;
               return label ? (
                 <button
                   key={tagId}
@@ -282,7 +301,9 @@ export default function MarketContent() {
               role="button"
               tabIndex={-1}
               aria-label="Close filters"
-              onKeyDown={(e) => e.key === "Escape" && setMobileFilterOpen(false)}
+              onKeyDown={(e) =>
+                e.key === "Escape" && setMobileFilterOpen(false)
+              }
             />
             <div className="absolute bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-background p-5 shadow-xl animate-in slide-in-from-bottom duration-300">
               <div className="mb-4 flex items-center justify-between">
@@ -292,6 +313,7 @@ export default function MarketContent() {
                   onClick={() => setMobileFilterOpen(false)}
                   className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
+                  {}
                   <X className="size-5" />
                 </button>
               </div>
@@ -302,7 +324,9 @@ export default function MarketContent() {
                   const colors = categoryColors[category.id];
                   return (
                     <div key={category.id}>
-                      <h4 className={`mb-2 text-sm font-bold ${colors?.text ?? "text-foreground"}`}>
+                      <h4
+                        className={`mb-2 text-sm font-bold ${colors?.text ?? "text-foreground"}`}
+                      >
                         {category.label}
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
@@ -313,7 +337,8 @@ export default function MarketContent() {
                             onClick={() => handleTagToggle(option.id)}
                             className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                               selectedTags.has(option.id)
-                                ? colors?.activeBg ?? "border-primary bg-primary text-primary-foreground"
+                                ? (colors?.activeBg ??
+                                  "border-primary bg-primary text-primary-foreground")
                                 : "border-border text-muted-foreground"
                             }`}
                           >
@@ -328,7 +353,9 @@ export default function MarketContent() {
 
               {/* Providers */}
               <div className="mt-5 border-t border-border pt-4">
-                <h4 className="mb-2 text-sm font-bold text-foreground">Providers</h4>
+                <h4 className="mb-2 text-sm font-bold text-foreground">
+                  Providers
+                </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {providerList.map((provider) => (
                     <button
