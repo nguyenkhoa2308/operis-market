@@ -74,12 +74,14 @@ export function useUsage() {
 }
 
 export interface AccountUsage {
-  totalSpend: number;
+  totalCredits: number;
+  totalSpendUsd: number;
+  maxBudgetUsd: number | null;
   totalRequests: number;
   totalPromptTokens: number;
   totalCompletionTokens: number;
-  dailyUsage: { date: string; spend: number }[];
-  modelUsage: { model: string; spend: number; requests: number; promptTokens: number; completionTokens: number }[];
+  dailyUsage: { date: string; credits: number; requests: number }[];
+  modelUsage: { model: string; credits: number; requests: number; promptTokens: number; completionTokens: number }[];
 }
 
 export interface KeyUsageItem {
@@ -88,8 +90,13 @@ export interface KeyUsageItem {
   keyPrefix: string | null;
   spend: number;
   maxBudget: number | null;
+  budgetDuration: string | null;
+  budgetResetAt: string | null;
+  tpmLimit: number | null;
+  rpmLimit: number | null;
   createdAt: string | null;
   expiresAt: string | null;
+  lastActive: string | null;
   models: string[];
 }
 

@@ -560,7 +560,6 @@ export default function DocsPage() {
                     <thead>
                       <tr className="border-b border-border bg-background-secondary">
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Provider</th>
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Loại</th>
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (credits/1k tokens)</th>
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (credits/1k tokens)</th>
@@ -568,19 +567,18 @@ export default function DocsPage() {
                     </thead>
                     <tbody>
                       {[
-                        { id: "gemini-2.5-flash", provider: "KIE.AI", type: "Chat", input: 2, output: 4 },
-                        { id: "gemini-2.5-pro", provider: "KIE.AI", type: "Chat", input: 4, output: 8 },
-                        { id: "claude-sonnet-4-5", provider: "KIE.AI", type: "Chat", input: 3, output: 6 },
-                        { id: "kimi-k2.5", provider: "BytePlus", type: "Chat", input: 1, output: 2 },
-                        { id: "kimi-k2-thinking", provider: "BytePlus", type: "Chat (Reasoning)", input: 2, output: 3 },
-                        { id: "deepseek-v3.2", provider: "BytePlus", type: "Chat", input: 1, output: 1 },
-                        { id: "gpt-5-4", provider: "KIE.AI", type: "Chat", input: 5, output: 10 },
+                        { id: "gemini-2.5-flash", type: "Chat", input: 2, output: 4 },
+                        { id: "gemini-2.5-pro", type: "Chat", input: 4, output: 8 },
+                        { id: "claude-sonnet-4-5", type: "Chat", input: 3, output: 6 },
+                        { id: "kimi-k2.5", type: "Chat", input: 1, output: 2 },
+                        { id: "kimi-k2-thinking", type: "Chat (Reasoning)", input: 2, output: 3 },
+                        { id: "deepseek-v3.2", type: "Chat", input: 1, output: 1 },
+                        { id: "gpt-5-4", type: "Chat", input: 5, output: 10 },
                       ].map((m) => (
                         <tr key={m.id} className="border-b border-border last:border-0">
                           <td className="px-4 py-3">
                             <InlineCode>{m.id}</InlineCode>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.provider}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.type}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.input}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.output}</td>

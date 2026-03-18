@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { TrendingUp, Activity, Key, BarChart3 } from "lucide-react";
+import { TrendingUp, Activity, Key, BarChart3, DollarSign, Shield } from "lucide-react";
 import { useAccountUsage, useKeyUsage } from "@/hooks/use-logs";
 
 const UsageBarChart = dynamic(
@@ -39,6 +39,25 @@ function StatCard({
   );
 }
 
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString();
+  } catch {
+    return "—";
+  }
+}
+
+function formatDateTime(dateStr: string | null) {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  } catch {
+    return "—";
+  }
+}
+
 function PerAccountTab() {
   const { data, isLoading } = useAccountUsage();
 
@@ -50,16 +69,21 @@ function PerAccountTab() {
     );
   }
 
-  const totalSpend = data?.totalSpend ?? 0;
+  const totalCredits = data?.totalCredits ?? 0;
+  const totalSpendUsd = data?.totalSpendUsd ?? 0;
+  const maxBudgetUsd = data?.maxBudgetUsd;
   const totalRequests = data?.totalRequests ?? 0;
   const dailyUsage = data?.dailyUsage ?? [];
   const modelUsage = data?.modelUsage ?? [];
-  const chartData = dailyUsage.map((d) => ({ date: d.date, spend: d.spend, credits: 0 }));
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={TrendingUp} label="Total Spend" value={`$${totalSpend.toFixed(4)}`} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <StatCard icon={TrendingUp} label="Total Credits" value={totalCredits.toLocaleString()} />
+        <StatCard icon={DollarSign} label="Spend (USD)" value={`$${totalSpendUsd.toFixed(4)}`} />
+        {maxBudgetUsd != null && (
+          <StatCard icon={Shield} label="Max Budget" value={`$${maxBudgetUsd.toFixed(2)}`} />
+        )}
         <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
         <StatCard
           icon={BarChart3}
@@ -74,9 +98,9 @@ function PerAccountTab() {
       </div>
 
       <div className="rounded-xl border border-border p-4 sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Daily Spend (USD)</h3>
-        {chartData.length > 0 ? (
-          <UsageBarChart data={chartData} mode="spend" />
+        <h3 className="mb-4 text-sm font-semibold text-foreground">Daily Credits Usage</h3>
+        {dailyUsage.length > 0 ? (
+          <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, credits: d.credits, spend: 0 }))} mode="credits" />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
             No usage data yet
@@ -95,7 +119,7 @@ function PerAccountTab() {
                   <th className="pb-2 text-right font-medium">Requests</th>
                   <th className="pb-2 text-right font-medium">Prompt Tokens</th>
                   <th className="pb-2 text-right font-medium">Completion Tokens</th>
-                  <th className="pb-2 text-right font-medium">Spend (USD)</th>
+                  <th className="pb-2 text-right font-medium">Credits</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,7 +129,7 @@ function PerAccountTab() {
                     <td className="py-2.5 text-right text-foreground/80">{m.requests.toLocaleString()}</td>
                     <td className="py-2.5 text-right text-foreground/80">{m.promptTokens.toLocaleString()}</td>
                     <td className="py-2.5 text-right text-foreground/80">{m.completionTokens.toLocaleString()}</td>
-                    <td className="py-2.5 text-right font-medium text-foreground">${m.spend.toFixed(6)}</td>
+                    <td className="py-2.5 text-right font-medium text-foreground">{m.credits.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -143,6 +167,11 @@ function PerKeyTab() {
                 <th className="pb-2 text-left font-medium">Key</th>
                 <th className="pb-2 text-left font-medium">Alias</th>
                 <th className="pb-2 text-right font-medium">Spend (USD)</th>
+                <th className="pb-2 text-right font-medium">Max Budget</th>
+                <th className="pb-2 text-right font-medium">RPM</th>
+                <th className="pb-2 text-right font-medium">TPM</th>
+                <th className="pb-2 text-right font-medium">Last Active</th>
+                <th className="pb-2 text-right font-medium">Expires</th>
                 <th className="pb-2 text-right font-medium">Created</th>
               </tr>
             </thead>
@@ -159,9 +188,26 @@ function PerKeyTab() {
                     )}
                   </td>
                   <td className="py-2.5 text-foreground/80">{k.keyAlias ?? "—"}</td>
-                  <td className="py-2.5 text-right font-medium text-foreground">${k.spend.toFixed(6)}</td>
+                  <td className="py-2.5 text-right font-medium text-foreground">
+                    ${k.spend.toFixed(6)}
+                  </td>
+                  <td className="py-2.5 text-right text-foreground/80">
+                    {k.maxBudget != null ? `$${k.maxBudget.toFixed(2)}` : "—"}
+                  </td>
+                  <td className="py-2.5 text-right text-foreground/80">
+                    {k.rpmLimit != null ? k.rpmLimit.toLocaleString() : "—"}
+                  </td>
+                  <td className="py-2.5 text-right text-foreground/80">
+                    {k.tpmLimit != null ? k.tpmLimit.toLocaleString() : "—"}
+                  </td>
                   <td className="py-2.5 text-right text-foreground/60">
-                    {k.createdAt ? new Date(k.createdAt).toLocaleDateString() : "—"}
+                    {formatDateTime(k.lastActive)}
+                  </td>
+                  <td className="py-2.5 text-right text-foreground/60">
+                    {formatDate(k.expiresAt)}
+                  </td>
+                  <td className="py-2.5 text-right text-foreground/60">
+                    {formatDate(k.createdAt)}
                   </td>
                 </tr>
               ))}
