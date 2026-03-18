@@ -73,6 +73,7 @@ const navLinks = [
     ],
   },
   { id: 5, label: "Cập nhật", href: "/updates" },
+  { id: 6, label: "API Docs", href: "/docs" },
 ];
 
 export default function Header() {

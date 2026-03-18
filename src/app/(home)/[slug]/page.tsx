@@ -26,12 +26,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!model) return {};
 
   return {
-    title: `${model.name} — ${model.provider}`,
+    title: `${model.name} — ${model.provider?.name ?? model.provider}`,
     description: model.description,
     openGraph: {
-      title: `${model.name} — ${model.provider} | Operis Market`,
+      title: `${model.name} — ${model.provider?.name ?? model.provider} | Operis Market`,
       description: model.description,
-      ...(model.image && { images: [{ url: model.image, alt: model.name }] }),
+      ...(model.imageUrl && { images: [{ url: model.imageUrl, alt: model.name }] }),
     },
   };
 }

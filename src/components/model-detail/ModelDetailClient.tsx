@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { usePlayground } from "@/hooks/use-playground";
 import Link from "next/link";
 import {
   Copy,
@@ -29,6 +30,97 @@ import {
 } from "@/data/model-detail";
 
 type Tab = "playground" | "examples" | "readme" | "api";
+
+/* ─── Chat Playground (for chat models) ─── */
+function ChatPlaygroundTab({ slug }: { slug: string }) {
+  const { messages, isStreaming, currentResponse, tokenUsage, error, send, stop, clearMessages } = usePlayground();
+  const [input, setInput] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, currentResponse]);
+
+  const handleSend = () => {
+    if (!input.trim() || isStreaming) return;
+    send(input, { model: slug, systemPrompt: "", temperature: 1, maxTokens: 1024, topP: 1 });
+    setInput("");
+  };
+
+  return (
+    <div className="flex flex-col h-[500px]">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && !isStreaming && (
+          <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+            Gửi tin nhắn để bắt đầu thử model
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+              msg.role === "user"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground"
+            }`}>
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {isStreaming && currentResponse && (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm bg-muted text-foreground whitespace-pre-wrap">
+              {currentResponse}
+              <span className="inline-block w-1 h-4 ml-0.5 bg-foreground animate-pulse" />
+            </div>
+          </div>
+        )}
+        {isStreaming && !currentResponse && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl px-4 py-3 bg-muted flex gap-1">
+              {[0, 1, 2].map(i => (
+                <span key={i} className="size-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+          </div>
+        )}
+        {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Token usage */}
+      {tokenUsage && (
+        <div className="px-4 py-1.5 border-t border-border text-xs text-muted-foreground flex gap-3">
+          <span>Prompt: {tokenUsage.prompt}</span>
+          <span>Completion: {tokenUsage.completion}</span>
+          <span>Credits: {tokenUsage.creditsConsumed}</span>
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="border-t border-border p-3 flex gap-2">
+        <button type="button" onClick={clearMessages} title="Clear" className="cursor-pointer text-xs text-muted-foreground hover:text-foreground px-2">
+          Xóa
+        </button>
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+          placeholder="Nhập tin nhắn..."
+          rows={1}
+          className="flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
+        />
+        {isStreaming ? (
+          <button type="button" onClick={stop} className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white">Stop</button>
+        ) : (
+          <button type="button" title="Send" onClick={handleSend} disabled={!input.trim()} className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground disabled:opacity-50">
+            <Zap className="size-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ─── Playground Tab ─── */
 function PlaygroundTab({
@@ -70,6 +162,10 @@ function PlaygroundTab({
   });
   const [inputMode, setInputMode] = useState<"form" | "json">("form");
   const [outputMode, setOutputMode] = useState<"preview" | "json">("preview");
+
+  if (category === "chat") {
+    return <ChatPlaygroundTab slug={slug} />;
+  }
 
   const outputType =
     category === "image"
