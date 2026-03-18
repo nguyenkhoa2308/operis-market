@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, Info, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useDebounce } from "@/hooks/useDebounce";
 // TODO: Replace with API hook when BE adds a bulk pricing endpoint (GET /pricing)
 // Currently no single endpoint returns all models with their pricing tiers
 import { pricingGroups, pricingCategoryTabs } from "@/data/pricing";
@@ -118,6 +119,7 @@ function PaginationBar({
 export default function PricingPage() {
   const [activeCategory, setActiveCategory] = useState<"all" | PricingCategory>("all");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
@@ -135,7 +137,7 @@ export default function PricingPage() {
 
   // Filter groups + their tiers
   const filteredGroups = useMemo(() => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     const result: { id: string; model: string; tiers: typeof pricingGroups[0]["tiers"] }[] = [];
 
     for (const group of pricingGroups) {
@@ -159,7 +161,7 @@ export default function PricingPage() {
       }
     }
     return result;
-  }, [activeCategory, search]);
+  }, [activeCategory, debouncedSearch]);
 
   // Total tier count across all filtered groups
   const totalTiers = filteredGroups.reduce((sum, g) => sum + g.tiers.length, 0);

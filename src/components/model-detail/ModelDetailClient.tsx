@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePlayground } from "@/hooks/use-playground";
 import Link from "next/link";
 import {
@@ -17,56 +17,19 @@ import {
   ExternalLink,
   Info,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
-import type { Model } from "@/types/market";
+import type { ModelDetail, ModelPlaygroundField } from "@/types/market";
+import { useModelDetail } from "@/hooks/use-models";
+import { Switch } from "@/components/ui/switch";
 import {
   getPlaygroundFields,
-  generateStatusBars,
   apiEndpoints,
   requestBodyExample,
   rootParams,
 } from "@/data/model-detail";
 
 type Tab = "playground" | "examples" | "readme" | "api";
-
-/* ─── Status bar ─── */
-function StatusMonitor({ slug }: { slug: string }) {
-  const bars = useMemo(() => generateStatusBars(), [slug]);
-  const successRate = Math.round((bars.filter((b) => b === "ok").length / bars.length) * 100);
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="font-semibold uppercase tracking-wider">24H Status Monitor</span>
-          <Info className="size-3" />
-        </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="size-2 rounded-full bg-green-400" />
-          <span className="text-muted-foreground">
-            2026-03-03 17:21:15 —— 2026-03-04 17:21:15
-          </span>
-          <span className="text-muted-foreground">-</span>
-          <span className="font-semibold text-green-400">Success:{successRate}%</span>
-        </div>
-      </div>
-      <div className="flex gap-0.5">
-        {bars.map((status, i) => (
-          <div
-            key={i}
-            className={`h-8 flex-1 rounded-[2px] ${
-              status === "ok"
-                ? "bg-green-500"
-                : status === "degraded"
-                  ? "bg-yellow-500"
-                  : "bg-red-500"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ─── Chat Playground (for chat models) ─── */
 function ChatPlaygroundTab({ slug }: { slug: string }) {
@@ -150,7 +113,7 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
         {isStreaming ? (
           <button type="button" onClick={stop} className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white">Stop</button>
         ) : (
-          <button type="button" onClick={handleSend} disabled={!input.trim()} className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground disabled:opacity-50">
+          <button type="button" title="Send" onClick={handleSend} disabled={!input.trim()} className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground disabled:opacity-50">
             <Zap className="size-4" />
           </button>
         )}
@@ -160,23 +123,67 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
 }
 
 /* ─── Playground Tab ─── */
-function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
-  if (category === "chat") {
-    return <ChatPlaygroundTab slug={slug} />;
-  }
-
-  const fields = getPlaygroundFields(slug, category as "image" | "video" | "music" | "chat");
+function PlaygroundTab({
+  category,
+  slug,
+  apiFields,
+}: {
+  category: string;
+  slug: string;
+  apiFields?: ModelPlaygroundField[];
+}) {
+  const fields =
+    apiFields && apiFields.length > 0
+      ? apiFields
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((f) => ({
+            name: f.name,
+            label: f.label,
+            type: f.type,
+            description: f.description ?? undefined,
+            required: f.required,
+            placeholder: f.placeholder ?? undefined,
+            defaultValue: f.defaultValue ?? undefined,
+            options: f.modelFieldOptions?.map((o) => ({
+              label: o.label,
+              value: o.value,
+            })),
+          }))
+      : getPlaygroundFields(
+          slug,
+          category as "image" | "video" | "music" | "chat",
+        );
   const [formValues, setFormValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    fields.forEach((f) => { if (f.defaultValue) init[f.name] = f.defaultValue; });
+    fields.forEach((f) => {
+      if (f.defaultValue) init[f.name] = f.defaultValue;
+    });
     return init;
   });
   const [inputMode, setInputMode] = useState<"form" | "json">("form");
   const [outputMode, setOutputMode] = useState<"preview" | "json">("preview");
 
-  const outputType = category === "image" ? "image" : category === "video" ? "video" : category === "music" ? "audio" : "text";
+  if (category === "chat") {
+    return <ChatPlaygroundTab slug={slug} />;
+  }
 
-  const credits = category === "image" ? 8 : category === "video" ? 20 : category === "music" ? 10 : 2;
+  const outputType =
+    category === "image"
+      ? "image"
+      : category === "video"
+        ? "video"
+        : category === "music"
+          ? "audio"
+          : "text";
+
+  const credits =
+    category === "image"
+      ? 8
+      : category === "video"
+        ? 20
+        : category === "music"
+          ? 10
+          : 2;
 
   return (
     <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
@@ -208,14 +215,21 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
               <div key={field.name}>
                 <label className="mb-1.5 block text-sm font-semibold text-foreground">
                   {field.label}
-                  {field.required && <span className="ml-0.5 text-red-400">*</span>}
+                  {field.required && (
+                    <span className="ml-0.5 text-red-400">*</span>
+                  )}
                 </label>
 
                 {field.type === "textarea" && (
                   <textarea
                     placeholder={field.placeholder}
                     value={formValues[field.name] ?? ""}
-                    onChange={(e) => setFormValues((v) => ({ ...v, [field.name]: e.target.value }))}
+                    onChange={(e) =>
+                      setFormValues((v) => ({
+                        ...v,
+                        [field.name]: e.target.value,
+                      }))
+                    }
                     rows={4}
                     className="w-full resize-y rounded-lg border border-border bg-background-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   />
@@ -226,11 +240,18 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
                     <select
                       title={field.label}
                       value={formValues[field.name] ?? field.defaultValue}
-                      onChange={(e) => setFormValues((v) => ({ ...v, [field.name]: e.target.value }))}
+                      onChange={(e) =>
+                        setFormValues((v) => ({
+                          ...v,
+                          [field.name]: e.target.value,
+                        }))
+                      }
                       className="w-full appearance-none rounded-lg border border-border bg-background-secondary px-4 py-3 pr-10 text-sm text-foreground focus:border-primary focus:outline-none"
                     >
                       {field.options?.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
                       ))}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -243,9 +264,15 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
                       <button
                         key={opt.value}
                         type="button"
-                        onClick={() => setFormValues((v) => ({ ...v, [field.name]: opt.value }))}
+                        onClick={() =>
+                          setFormValues((v) => ({
+                            ...v,
+                            [field.name]: opt.value,
+                          }))
+                        }
                         className={`cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-                          (formValues[field.name] ?? field.defaultValue) === opt.value
+                          (formValues[field.name] ?? field.defaultValue) ===
+                          opt.value
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted/50 text-foreground hover:bg-muted"
                         }`}
@@ -257,25 +284,16 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
                 )}
 
                 {field.type === "toggle" && (
-                  <button
-                    type="button"
-                    title={field.label}
-                    onClick={() =>
+                  <Switch
+                    checked={formValues[field.name] === "true"}
+                    onCheckedChange={(checked) =>
                       setFormValues((v) => ({
                         ...v,
-                        [field.name]: v[field.name] === "true" ? "false" : "true",
+                        [field.name]: checked ? "true" : "false",
                       }))
                     }
-                    className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors ${
-                      formValues[field.name] === "true" ? "bg-primary" : "bg-muted"
-                    }`}
-                  >
-                    <span
-                      className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform ${
-                        formValues[field.name] === "true" ? "translate-x-5" : ""
-                      }`}
-                    />
-                  </button>
+                    aria-label={field.label}
+                  />
                 )}
 
                 {field.type === "file" && (
@@ -292,13 +310,20 @@ function PlaygroundTab({ category, slug }: { category: string; slug: string }) {
                     title={field.label}
                     placeholder={field.placeholder ?? field.label}
                     value={formValues[field.name] ?? field.defaultValue}
-                    onChange={(e) => setFormValues((v) => ({ ...v, [field.name]: e.target.value }))}
+                    onChange={(e) =>
+                      setFormValues((v) => ({
+                        ...v,
+                        [field.name]: e.target.value,
+                      }))
+                    }
                     className="w-full rounded-lg border border-border bg-background-secondary px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none"
                   />
                 )}
 
                 {field.description && (
-                  <p className="mt-1.5 text-xs text-muted-foreground">{field.description}</p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {field.description}
+                  </p>
                 )}
               </div>
             ))}
@@ -389,7 +414,14 @@ function ExamplesTab({ modelName }: { modelName: string }) {
                 <p className="text-xs text-muted-foreground">Example {i}</p>
               </div>
               <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                {modelName.includes("Suno") ? "AUDIO" : modelName.includes("Veo") || modelName.includes("Runway") || modelName.includes("Sora") || modelName.includes("Kling") ? "VIDEO" : "IMAGE"}
+                {modelName.includes("Suno")
+                  ? "AUDIO"
+                  : modelName.includes("Veo") ||
+                      modelName.includes("Runway") ||
+                      modelName.includes("Sora") ||
+                      modelName.includes("Kling")
+                    ? "VIDEO"
+                    : "IMAGE"}
               </div>
             </div>
           ))}
@@ -400,7 +432,15 @@ function ExamplesTab({ modelName }: { modelName: string }) {
 }
 
 /* ─── README Tab ─── */
-function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: string; description: string }) {
+function ReadmeTab({
+  modelName,
+  slug,
+  description,
+}: {
+  modelName: string;
+  slug: string;
+  description: string;
+}) {
   return (
     <div className="p-6">
       <div className="rounded-xl border border-border p-6">
@@ -420,7 +460,9 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Getting Started</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">
+              Getting Started
+            </h3>
             <p className="text-sm text-muted-foreground">
               1. Đăng ký tài khoản tại Operis Market
             </p>
@@ -433,7 +475,9 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Rate Limits</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">
+              Rate Limits
+            </h3>
             <p className="text-sm text-muted-foreground">
               Free tier: 10 requests/minute. Paid tier: 100 requests/minute.
               Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
@@ -441,9 +485,12 @@ function ReadmeTab({ modelName, slug, description }: { modelName: string; slug: 
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">Support</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">
+              Support
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email support@operis.market
+              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email
+              support@operis.market
             </p>
           </div>
         </div>
@@ -469,7 +516,9 @@ function ApiTab({ slug }: { slug: string }) {
       {/* Sidebar */}
       <div className="border-b border-border p-6 lg:w-[300px] lg:border-b-0 lg:border-r">
         <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-foreground">
-          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">API</span>
+          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+            API
+          </span>
           API Endpoints
         </h3>
 
@@ -488,7 +537,9 @@ function ApiTab({ slug }: { slug: string }) {
               <Zap className="size-4 shrink-0" />
               <div>
                 <p className="text-sm font-medium">{endpoint.name}</p>
-                <p className={`text-[11px] ${activeEndpoint === i ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                <p
+                  className={`text-[11px] ${activeEndpoint === i ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                >
                   {endpoint.method}
                 </p>
               </div>
@@ -502,7 +553,9 @@ function ApiTab({ slug }: { slug: string }) {
             <Info className="size-4 shrink-0 text-primary" />
             <div>
               <p className="text-sm font-medium text-primary">Get Started</p>
-              <p className="text-[11px] text-muted-foreground">Things You Should Know</p>
+              <p className="text-[11px] text-muted-foreground">
+                Things You Should Know
+              </p>
             </div>
             <ChevronRight className="ml-auto size-4 text-muted-foreground" />
           </Link>
@@ -521,7 +574,9 @@ function ApiTab({ slug }: { slug: string }) {
             <code>Authorization: Bearer{"\n"}YOUR_API_KEY</code>
           </pre>
 
-          <p className="mb-2 mt-4 text-xs text-muted-foreground">Get API Key:</p>
+          <p className="mb-2 mt-4 text-xs text-muted-foreground">
+            Get API Key:
+          </p>
           <Link
             href="/api-keys"
             className="inline-flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-muted"
@@ -544,7 +599,9 @@ function ApiTab({ slug }: { slug: string }) {
         {/* Endpoint header */}
         <div className="mb-8 text-center">
           <div className="mb-4 flex items-center justify-center gap-3">
-            <span className={`rounded-lg px-3 py-1 text-xs font-bold text-white ${ep.method === "POST" ? "bg-green-600" : "bg-blue-600"}`}>
+            <span
+              className={`rounded-lg px-3 py-1 text-xs font-bold text-white ${ep.method === "POST" ? "bg-green-600" : "bg-blue-600"}`}
+            >
               {ep.method}
             </span>
             <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2">
@@ -555,7 +612,11 @@ function ApiTab({ slug }: { slug: string }) {
                 onClick={() => handleCopy(ep.path)}
                 className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
               >
-                {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+                {copied ? (
+                  <Check className="size-3.5 text-green-400" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
               </button>
             </div>
           </div>
@@ -566,7 +627,9 @@ function ApiTab({ slug }: { slug: string }) {
         {/* Request Parameters */}
         <div className="space-y-6">
           <div>
-            <h3 className="mb-2 text-lg font-bold text-foreground">Request Parameters</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">
+              Request Parameters
+            </h3>
             <p className="text-sm text-muted-foreground">
               The API accepts a JSON payload with the following structure:
             </p>
@@ -591,7 +654,10 @@ function ApiTab({ slug }: { slug: string }) {
             </h4>
             <div className="space-y-4">
               {rootParams.map((param) => (
-                <div key={param.name} className="rounded-lg border border-border bg-background p-4">
+                <div
+                  key={param.name}
+                  className="rounded-lg border border-border bg-background p-4"
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="size-2 rounded-full bg-primary" />
                     <code className="rounded bg-muted/60 px-2 py-0.5 text-sm font-mono font-semibold text-foreground">
@@ -602,13 +668,19 @@ function ApiTab({ slug }: { slug: string }) {
                         Required
                       </span>
                     )}
-                    <span className="text-xs text-muted-foreground">{param.type}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {param.type}
+                    </span>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">{param.description}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {param.description}
+                  </p>
                   {param.name === "model" && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground">Example:</p>
-                      <code className="text-xs text-primary">&quot;{slug}&quot;</code>
+                      <code className="text-xs text-primary">
+                        &quot;{slug}&quot;
+                      </code>
                     </div>
                   )}
                 </div>
@@ -622,11 +694,19 @@ function ApiTab({ slug }: { slug: string }) {
 }
 
 /* ─── Main Client Component ─── */
-export default function ModelDetailClient({ model }: { model: Model }) {
+export default function ModelDetailClient({
+  slug,
+  initialData,
+}: {
+  slug: string;
+  initialData?: ModelDetail;
+}) {
+  const { data: model, isLoading } = useModelDetail(slug, initialData);
   const [activeTab, setActiveTab] = useState<Tab>("playground");
   const [copied, setCopied] = useState(false);
 
   const handleCopyName = () => {
+    if (!model) return;
     navigator.clipboard.writeText(model.slug);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -645,7 +725,7 @@ export default function ModelDetailClient({ model }: { model: Model }) {
 
   // Scroll-spy: update active tab based on scroll position
   useEffect(() => {
-    if (isApiTab) return;
+    if (isApiTab || !model) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -661,20 +741,37 @@ export default function ModelDetailClient({ model }: { model: Model }) {
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, [isApiTab]);
+  }, [isApiTab, model]);
 
-  const handleTabClick = useCallback((id: Tab) => {
-    if (id === "api") {
-      setActiveTab("api");
-      return;
-    }
-    // If currently on API tab, switch back first
-    if (isApiTab) setActiveTab(id);
-    // Scroll to section
-    setTimeout(() => {
-      sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, isApiTab ? 50 : 0);
-  }, [isApiTab]);
+  const handleTabClick = useCallback(
+    (id: Tab) => {
+      if (id === "api") {
+        setActiveTab("api");
+        return;
+      }
+      // If currently on API tab, switch back first
+      if (isApiTab) setActiveTab(id);
+      // Scroll to section
+      setTimeout(
+        () => {
+          sectionRefs.current[id]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        },
+        isApiTab ? 50 : 0,
+      );
+    },
+    [isApiTab],
+  );
+
+  if (isLoading || !model) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-8 pt-20 sm:px-6 lg:pb-10">
@@ -689,14 +786,20 @@ export default function ModelDetailClient({ model }: { model: Model }) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-foreground">{model.slug}</h1>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {model.name}
+                  </h1>
                   <button
                     type="button"
                     title="Copy model name"
                     onClick={handleCopyName}
                     className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {copied ? <Check className="size-4 text-green-400" /> : <Copy className="size-4" />}
+                    {copied ? (
+                      <Check className="size-4 text-green-400" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )}
                   </button>
                 </div>
                 <span className="mt-1 inline-block rounded-full border border-green-500/30 bg-green-500/10 px-3 py-0.5 text-xs font-medium text-green-400">
@@ -714,7 +817,7 @@ export default function ModelDetailClient({ model }: { model: Model }) {
             <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
               <span>💰</span>
               <span>
-                Pricing: {model.name} — {model.pricing}.
+                Pricing: {model.name} — {model.pricingDisplay ?? model.pricing}.
                 High-tier top-ups (+10% bonus) bring effective pricing down.
               </span>
             </p>
@@ -740,10 +843,7 @@ export default function ModelDetailClient({ model }: { model: Model }) {
           </div>
         </div>
 
-        {/* Status monitor */}
-        <div className="mt-8">
-          <StatusMonitor slug={model.slug} />
-        </div>
+        {/* TODO: Status monitor — enable when real API available */}
       </div>
 
       {/* Tabs — sticky below the fixed header (h-[57px]) */}
@@ -774,14 +874,40 @@ export default function ModelDetailClient({ model }: { model: Model }) {
           <ApiTab slug={model.slug} />
         ) : (
           <>
-            <div id="playground" ref={(el) => { sectionRefs.current.playground = el; }} className="scroll-mt-[120px]">
-              <PlaygroundTab category={model.category} slug={model.slug} />
+            <div
+              id="playground"
+              ref={(el) => {
+                sectionRefs.current.playground = el;
+              }}
+              className="scroll-mt-[120px]"
+            >
+              <PlaygroundTab
+                category={model.category}
+                slug={model.slug}
+                apiFields={model.modelPlaygroundFields}
+              />
             </div>
-            <div id="examples" ref={(el) => { sectionRefs.current.examples = el; }} className="scroll-mt-[120px] border-t border-border">
+            <div
+              id="examples"
+              ref={(el) => {
+                sectionRefs.current.examples = el;
+              }}
+              className="scroll-mt-[120px] border-t border-border"
+            >
               <ExamplesTab modelName={model.name} />
             </div>
-            <div id="readme" ref={(el) => { sectionRefs.current.readme = el; }} className="scroll-mt-[120px] border-t border-border">
-              <ReadmeTab modelName={model.name} slug={model.slug} description={model.description} />
+            <div
+              id="readme"
+              ref={(el) => {
+                sectionRefs.current.readme = el;
+              }}
+              className="scroll-mt-[120px] border-t border-border"
+            >
+              <ReadmeTab
+                modelName={model.name}
+                slug={model.slug}
+                description={model.description}
+              />
             </div>
           </>
         )}
