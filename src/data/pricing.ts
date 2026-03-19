@@ -45,10 +45,23 @@ export const pricingModels: PricingModel[] = [
   // ── OpenAI ──
   { id: "gpt-5-4", model: "GPT-5.4", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 0.528, outputPrice: 4.20, inputOfficial: 2.50, outputOfficial: 10.00 },
   { id: "openai-codex", model: "OpenAI Codex", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 3, outputPrice: 6, inputOfficial: 6, outputOfficial: 12 },
-  // ── xAI — Image ──
-  { id: "nano-banana-2", model: "Nano Banana 2", category: "image", provider: "xAI", unit: "image", inputPrice: 10, outputPrice: 0, inputOfficial: 15, outputOfficial: null },
-  { id: "nano-banana-pro", model: "Nano Banana Pro", category: "image", provider: "xAI", unit: "image", inputPrice: 20, outputPrice: 0, inputOfficial: 30, outputOfficial: null },
-  { id: "grok-imagine", model: "Grok Imagine", category: "image", provider: "xAI", unit: "image", inputPrice: 15, outputPrice: 0, inputOfficial: 20, outputOfficial: null },
+  // ── Google — Image ──
+  { id: "nano-banana-2-4k", model: "Nano Banana 2, 4K", category: "image", provider: "Google", unit: "image", inputPrice: 0.09, outputPrice: 0, inputOfficial: 0.16, outputOfficial: null },
+  { id: "nano-banana-2-2k", model: "Nano Banana 2, 2K", category: "image", provider: "Google", unit: "image", inputPrice: 0.06, outputPrice: 0, inputOfficial: 0.12, outputOfficial: null },
+  { id: "nano-banana-2-1k", model: "Nano Banana 2, 1K", category: "image", provider: "Google", unit: "image", inputPrice: 0.04, outputPrice: 0, inputOfficial: 0.08, outputOfficial: null },
+  { id: "nano-banana-pro-half-2k", model: "Nano Banana Pro, 1/2K", category: "image", provider: "Google", unit: "image", inputPrice: 0.09, outputPrice: 0, inputOfficial: 0.15, outputOfficial: null },
+  { id: "nano-banana-pro-4k", model: "Nano Banana Pro, 4K", category: "image", provider: "Google", unit: "image", inputPrice: 0.12, outputPrice: 0, inputOfficial: 0.30, outputOfficial: null },
+  // ── Black Forest Labs — Image ──
+  { id: "flux-2-pro-t2i-2k", model: "Flux-2 Pro, text-to-image, 2K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.035, outputPrice: 0, inputOfficial: 0.045, outputOfficial: null },
+  { id: "flux-2-pro-i2i-2k", model: "Flux-2 Pro, image-to-image, 2K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.035, outputPrice: 0, inputOfficial: 0.06, outputOfficial: null },
+  { id: "flux-2-pro-t2i-1k", model: "Flux-2 Pro, text-to-image, 1K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.025, outputPrice: 0, inputOfficial: 0.03, outputOfficial: null },
+  { id: "flux-2-pro-i2i-1k", model: "Flux-2 Pro, image-to-image, 1K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.025, outputPrice: 0, inputOfficial: 0.045, outputOfficial: null },
+  // ── ByteDance — Image ──
+  { id: "seedream-5-lite-i2i", model: "Seedream 5.0 Lite, image-to-image", category: "image", provider: "ByteDance", unit: "image", inputPrice: 0.0275, outputPrice: 0, inputOfficial: 0.035, outputOfficial: null },
+  { id: "seedream-5-lite-t2i", model: "Seedream 5.0 Lite, text-to-image", category: "image", provider: "ByteDance", unit: "image", inputPrice: 0.0275, outputPrice: 0, inputOfficial: 0.035, outputOfficial: null },
+  // ── Grok — Image ──
+  { id: "grok-imagine-i2i", model: "Grok Imagine, image-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
+  { id: "grok-imagine-t2i", model: "Grok Imagine, text-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
   // ── Midjourney — Image ──
   { id: "midjourney", model: "Midjourney", category: "image", provider: "Midjourney", unit: "image", inputPrice: 25, outputPrice: 0, inputOfficial: 35, outputOfficial: null },
   // ── Video ──

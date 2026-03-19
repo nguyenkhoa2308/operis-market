@@ -246,7 +246,6 @@ export default function PricingPage() {
           <thead>
             <tr className="border-b border-border bg-muted/20">
               <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Đơn vị</th>
               <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (Operis)</th>
               <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (Operis)</th>
               <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input Official</th>
@@ -273,18 +272,15 @@ export default function PricingPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-xs text-muted-foreground">/ {m.unit}</span>
-                  </td>
-                  <td className="px-4 py-3">
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)}</span>
+                      <span className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
                       <span className="text-xs text-muted-foreground">{formatUSD(m.inputPrice)}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     {isChat(m) ? (
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)}</span>
+                        <span className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
                         <span className="text-xs text-muted-foreground">{formatUSD(m.outputPrice)}</span>
                       </div>
                     ) : (
@@ -293,14 +289,20 @@ export default function PricingPage() {
                   </td>
                   <td className="px-4 py-3">
                     {m.inputOfficial !== null ? (
-                      <span className="text-sm text-muted-foreground">{formatUSD(m.inputOfficial)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-muted-foreground">{formatUSD(m.inputOfficial)}</span>
+                        <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">N/A</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {isChat(m) && m.outputOfficial !== null ? (
-                      <span className="text-sm text-muted-foreground">{formatUSD(m.outputOfficial)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-muted-foreground">{formatUSD(m.outputOfficial)}</span>
+                        <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
