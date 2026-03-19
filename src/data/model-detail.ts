@@ -26,22 +26,23 @@ const chatFields: PlaygroundField[] = [
 const imageFields: PlaygroundField[] = [
   { name: "prompt", label: "Prompt", type: "textarea", description: "Describe the image", required: true, placeholder: "A sunset over mountains..." },
   {
-    name: "size", label: "Size", type: "select", description: "Image dimensions", required: true, defaultValue: "1024x1024",
+    name: "aspect_ratio", label: "Tỷ lệ", type: "select", description: "Image aspect ratio", defaultValue: "1:1",
     options: [
-      { label: "256x256", value: "256x256" },
-      { label: "512x512", value: "512x512" },
-      { label: "1024x1024", value: "1024x1024" },
-      { label: "1024x1792", value: "1024x1792" },
-      { label: "1792x1024", value: "1792x1024" },
+      { label: "1:1 (Vuông)", value: "1:1" },
+      { label: "16:9 (Ngang)", value: "16:9" },
+      { label: "9:16 (Dọc)", value: "9:16" },
+      { label: "4:3", value: "4:3" },
+      { label: "3:4", value: "3:4" },
+      { label: "3:2", value: "3:2" },
+      { label: "2:3", value: "2:3" },
     ],
   },
   {
-    name: "style", label: "Style", type: "select", description: "Art style", defaultValue: "natural",
+    name: "resolution", label: "Độ phân giải", type: "select", description: "Output resolution", defaultValue: "1K",
     options: [
-      { label: "Natural", value: "natural" },
-      { label: "Vivid", value: "vivid" },
-      { label: "Anime", value: "anime" },
-      { label: "Photorealistic", value: "photorealistic" },
+      { label: "1K", value: "1K" },
+      { label: "2K", value: "2K" },
+      { label: "4K", value: "4K" },
     ],
   },
 ];
@@ -104,7 +105,7 @@ export function generateStatusBars(): ("ok" | "degraded" | "error")[] {
 /* ─── API Endpoints (for API tab) ─── */
 export const apiEndpoints = [
   { name: "Chat Completion", method: "POST", path: "/v1/chat/completions", description: "Generate a chat completion response from the specified model", categories: ["chat"] },
-  { name: "Image Generation", method: "POST", path: "/v1/images/generations", description: "Create an image given a text prompt", categories: ["image"] },
+  { name: "Image Generation", method: "POST", path: "/api/chat/image/generations", description: "Create an image given a text prompt", categories: ["image"] },
   { name: "Video Generation", method: "POST", path: "/v1/videos/generations", description: "Create a video clip from a text or image prompt", categories: ["video"] },
   { name: "Music Generation", method: "POST", path: "/v1/music/generations", description: "Generate a music track from a text description", categories: ["music"] },
   { name: "List Models", method: "GET", path: "/v1/models", description: "List available AI models with pricing and capabilities", categories: ["chat", "image", "video", "music"] },
@@ -157,7 +158,7 @@ export function getExamplesForCategory(category: string): ExampleItem[] {
 export function getRequestBodyExample(category: string, slug: string): string {
   switch (category) {
     case "image":
-      return JSON.stringify({ model: slug, prompt: "A sunset over mountains", size: "1024x1024", n: 1 }, null, 2);
+      return JSON.stringify({ model: slug, prompt: "A sunset over mountains", aspect_ratio: "1:1", resolution: "1K" }, null, 2);
     case "video":
       return JSON.stringify({ model: slug, prompt: "A drone flying over a city", duration: 5 }, null, 2);
     case "music":
@@ -193,8 +194,8 @@ const chatRootParams = [
 const imageRootParams = [
   { name: "model", type: "string", required: true, description: "The image model slug to use" },
   { name: "prompt", type: "string", required: true, description: "Text description of the image to generate" },
-  { name: "size", type: "string", required: false, description: "Image dimensions: 256x256, 512x512, 1024x1024, 1024x1792, 1792x1024. Default 1024x1024" },
-  { name: "n", type: "integer", required: false, description: "Number of images to generate (1-4). Default 1" },
+  { name: "aspect_ratio", type: "string", required: false, description: "Aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3. Default 1:1" },
+  { name: "resolution", type: "string", required: false, description: "Output resolution: 1K, 2K, 4K. Default 1K" },
 ];
 
 const videoRootParams = [

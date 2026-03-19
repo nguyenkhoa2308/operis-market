@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import DocsSidebar, { type DocSection } from "@/components/docs/DocsSidebar";
 import CodeBlock from "@/components/docs/CodeBlock";
-import { Key, Zap, BookOpen, MessageSquare, List, AlertCircle, Code2 } from "lucide-react";
+import { Key, Zap, BookOpen, MessageSquare, List, AlertCircle, Code2, ImageIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "API Docs — Operis Market",
@@ -18,6 +18,14 @@ const NAV_SECTIONS: DocSection[] = [
     children: [
       { id: "chat-basic", label: "Non-streaming" },
       { id: "chat-stream", label: "Streaming" },
+    ],
+  },
+  {
+    id: "image",
+    label: "Image Generation",
+    children: [
+      { id: "image-basic", label: "Tạo ảnh" },
+      { id: "image-models", label: "Image Models" },
     ],
   },
   { id: "models", label: "Danh sách Models" },
@@ -215,6 +223,97 @@ for await (const chunk of stream) {
   const delta = chunk.choices[0]?.delta?.content ?? "";
   process.stdout.write(delta);
 }`,
+  },
+];
+
+const IMAGE_BASIC_CODE = [
+  {
+    label: "cURL",
+    code: `curl https://api.operis.vn/api/chat/image/generations \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "nano-banana-2",
+    "prompt": "A serene mountain lake at golden hour, photorealistic",
+    "aspect_ratio": "16:9",
+    "resolution": "2K"
+  }'`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+response = requests.post(
+    "https://api.operis.vn/api/chat/image/generations",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "nano-banana-2",
+        "prompt": "A serene mountain lake at golden hour, photorealistic",
+        "aspect_ratio": "16:9",
+        "resolution": "2K",
+    },
+    timeout=150,  # Image generation có thể mất 10-60 giây
+)
+
+data = response.json()["data"]
+print(f"Created: {data['created']}")
+for img in data["data"]:
+    print(f"URL: {img['url']}")`,
+  },
+  {
+    label: "JavaScript",
+    code: `const response = await fetch("https://api.operis.vn/api/chat/image/generations", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "nano-banana-2",
+    prompt: "A serene mountain lake at golden hour, photorealistic",
+    aspect_ratio: "16:9",
+    resolution: "2K",
+  }),
+});
+
+const { data } = await response.json();
+console.log("Image URL:", data.data[0].url);`,
+  },
+];
+
+const IMAGE_COMPLETIONS_CODE = [
+  {
+    label: "cURL",
+    code: `# Hoặc dùng endpoint /api/chat/completions với image model:
+curl https://api.operis.vn/api/chat/completions \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "grok-imagine",
+    "prompt": "Cyberpunk city at night, neon lights",
+    "aspect_ratio": "1:1"
+  }'`,
+  },
+  {
+    label: "Python",
+    code: `# Image models cũng hoạt động qua endpoint completions
+response = requests.post(
+    "https://api.operis.vn/api/chat/completions",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "model": "grok-imagine",
+        "prompt": "Cyberpunk city at night, neon lights",
+        "aspect_ratio": "1:1",
+    },
+    timeout=150,
+)
+
+images = response.json()["data"]["data"]
+for img in images:
+    print(img["url"])`,
   },
 ];
 
@@ -533,6 +632,110 @@ export default function DocsPage() {
               </SubSection>
             </Section>
 
+            {/* ── Image Generation ── */}
+            <Section id="image" icon={ImageIcon} title="Image Generation">
+              <p className="text-muted-foreground">
+                Tạo ảnh từ prompt văn bản. Response trả về URL ảnh trực tiếp. Thời gian tạo ảnh thường 10–60 giây tùy model.
+              </p>
+
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
+                  <span className="rounded-md bg-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">POST</span>
+                  <code className="text-sm font-mono text-foreground">/api/chat/image/generations</code>
+                </div>
+                <div className="p-4 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left">
+                        <th className="pb-2 text-xs font-medium text-muted-foreground">Tham số</th>
+                        <th className="pb-2 text-xs font-medium text-muted-foreground">Kiểu</th>
+                        <th className="pb-2 text-xs font-medium text-muted-foreground">Mô tả</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <ParamRow name="model" type="string" required desc="Model ID: nano-banana-2, nano-banana-pro, grok-imagine" />
+                      <ParamRow name="prompt" type="string" required desc="Mô tả hình ảnh muốn tạo" />
+                      <ParamRow name="aspect_ratio" type="string" desc="Tỷ lệ ảnh: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3. Mặc định: 1:1" />
+                      <ParamRow name="resolution" type="string" desc="Độ phân giải: 1K, 2K, 4K. Mặc định: 1K (không áp dụng cho grok-imagine)" />
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
+                <p className="text-sm font-medium text-foreground">Response format</p>
+                <CodeBlock
+                  tabs={[{
+                    label: "JSON",
+                    code: `{
+  "success": true,
+  "data": {
+    "created": 1773896512,
+    "data": [
+      {
+        "url": "https://..../generated-image.jpg",
+        "revised_prompt": "A serene mountain lake..."
+      }
+    ]
+  }
+}`,
+                  }]}
+                />
+              </div>
+
+              <SubSection id="image-basic" title="Tạo ảnh">
+                <p className="text-sm text-muted-foreground">
+                  Gửi prompt mô tả hình ảnh và nhận URL ảnh. Lưu ý đặt timeout ≥ 150 giây vì quá trình tạo ảnh có thể mất thời gian.
+                </p>
+                <CodeBlock tabs={IMAGE_BASIC_CODE} />
+
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+                  <p className="text-sm font-medium text-amber-400">Lưu ý quan trọng</p>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
+                    <li>URL ảnh là <strong>tạm thời</strong> — tải về và lưu trữ riêng nếu cần dùng lâu dài.</li>
+                    <li>Image models cũng hoạt động qua <InlineCode>/api/chat/completions</InlineCode> — hệ thống tự nhận diện image model.</li>
+                    <li>Credits bị trừ <strong>sau khi</strong> ảnh tạo thành công, không trừ nếu thất bại.</li>
+                  </ul>
+                </div>
+
+                <CodeBlock tabs={IMAGE_COMPLETIONS_CODE} />
+              </SubSection>
+
+              <SubSection id="image-models" title="Image Models">
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-background-secondary">
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Credits/ảnh</th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Tỷ lệ hỗ trợ</th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Độ phân giải</th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Ghi chú</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { id: "nano-banana-2", credits: 10, ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", res: "1K, 2K, 4K", note: "Nhanh, chất lượng tốt" },
+                          { id: "nano-banana-pro", credits: 20, ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", res: "1K, 2K, 4K", note: "Chất lượng cao, chi tiết hơn" },
+                          { id: "grok-imagine", credits: 15, ratios: "1:1, 16:9, 9:16, 4:3, 3:4", res: "N/A", note: "Phong cách nghệ thuật, trả nhiều ảnh" },
+                          { id: "midjourney", credits: 25, ratios: "—", res: "—", note: "Sắp ra mắt" },
+                        ].map((m) => (
+                          <tr key={m.id} className="border-b border-border last:border-0">
+                            <td className="px-4 py-3"><InlineCode>{m.id}</InlineCode></td>
+                            <td className="px-4 py-3 text-muted-foreground">{m.credits}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{m.ratios}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{m.res}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{m.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </SubSection>
+            </Section>
+
             {/* ── Models ── */}
             <Section id="models" icon={List} title="Danh sách Models">
               <p className="text-muted-foreground">
@@ -619,6 +822,11 @@ export default function DocsPage() {
                       <td className="px-4 py-3 font-mono text-sm">402</td>
                       <td className="px-4 py-3 font-medium">Insufficient Credits</td>
                       <td className="px-4 py-3 text-muted-foreground">Số credit không đủ, cần nạp thêm</td>
+                    </tr>
+                    <tr className="border-b border-border">
+                      <td className="px-4 py-3 font-mono text-sm">408</td>
+                      <td className="px-4 py-3 font-medium">Request Timeout</td>
+                      <td className="px-4 py-3 text-muted-foreground">Tạo ảnh/video vượt quá thời gian cho phép (120s)</td>
                     </tr>
                     <tr className="border-b border-border">
                       <td className="px-4 py-3 font-mono text-sm">429</td>

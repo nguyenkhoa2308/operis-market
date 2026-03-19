@@ -211,8 +211,9 @@ function PlaygroundTab({
         const res = await api.post("/chat/image-playground", {
           model: slug,
           prompt: formValues.prompt ?? "",
-          size: formValues.size ?? "1024x1024",
-        });
+          aspect_ratio: formValues.aspect_ratio ?? "1:1",
+          resolution: formValues.resolution ?? "1K",
+        }, { timeout: 150000 });
         setOutputUrl(res.data.data?.url ?? null);
       } else {
         setRunError("Video/music generation coming soon.");
