@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Info, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
-// TODO: Replace with API hook when BE adds a bulk pricing endpoint (GET /pricing)
-// Currently no single endpoint returns all models with their pricing tiers
-import { pricingGroups, pricingCategoryTabs } from "@/data/pricing";
-import type { PricingCategory } from "@/data/pricing";
+import { pricingModels, pricingCategoryTabs, USD_TO_VND } from "@/data/pricing";
+import type { PricingCategory, PricingModel } from "@/data/pricing";
 
 const categoryBadgeColors: Record<PricingCategory, string> = {
   chat: "bg-violet-500/20 text-violet-400 border-violet-500/30",
@@ -17,22 +15,27 @@ const categoryBadgeColors: Record<PricingCategory, string> = {
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 
-function formatPrice(price: number): string {
+function formatUSD(price: number): string {
   return `$${price}`;
 }
 
-function calcDiscount(ourPrice: number, marketPrice: number | null): string | null {
-  if (marketPrice === null || marketPrice === 0) return null;
-  const pct = ((ourPrice - marketPrice) / marketPrice) * 100;
-  return `${pct.toFixed(1)}%`;
+function formatVND(usd: number): string {
+  const vnd = Math.round(usd * USD_TO_VND);
+  return vnd.toLocaleString("vi-VN") + "đ";
+}
+
+function calcDiscount(ourPrice: number, officialPrice: number | null): string | null {
+  if (officialPrice === null || officialPrice === 0) return null;
+  const pct = Math.round(((officialPrice - ourPrice) / officialPrice) * 100);
+  return `~${pct}%`;
 }
 
 function PaginationBar({
   rowsPerPage,
   onRowsPerPageChange,
-  tierStart,
-  tierEnd,
-  totalTiers,
+  start,
+  end,
+  total,
   page,
   totalPages,
   onPageChange,
@@ -40,9 +43,9 @@ function PaginationBar({
 }: {
   rowsPerPage: number;
   onRowsPerPageChange: (val: number) => void;
-  tierStart: number;
-  tierEnd: number;
-  totalTiers: number;
+  start: number;
+  end: number;
+  total: number;
   page: number;
   totalPages: number;
   onPageChange: (p: number) => void;
@@ -65,7 +68,7 @@ function PaginationBar({
           ))}
         </select>
         <span className="ml-2 text-xs text-muted-foreground">
-          {tierStart}-{tierEnd} of {totalTiers}
+          {start}-{end} / {total}
         </span>
       </div>
 
@@ -81,10 +84,7 @@ function PaginationBar({
         </button>
         {getPageNumbers().map((p, i) =>
           p === "..." ? (
-            <span
-              key={`dots-${i}`}
-              className="px-1 text-xs text-muted-foreground"
-            >
+            <span key={`dots-${i}`} className="px-1 text-xs text-muted-foreground">
               …
             </span>
           ) : (
@@ -123,87 +123,31 @@ export default function PricingPage() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  // Count tiers per category
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: 0 };
-    for (const group of pricingGroups) {
-      for (const tier of group.tiers) {
-        counts.all = (counts.all || 0) + 1;
-        counts[tier.category] = (counts[tier.category] || 0) + 1;
-      }
+    const counts: Record<string, number> = { all: pricingModels.length };
+    for (const m of pricingModels) {
+      counts[m.category] = (counts[m.category] || 0) + 1;
     }
     return counts;
   }, []);
 
-  // Filter groups + their tiers
-  const filteredGroups = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
-    const result: { id: string; model: string; tiers: typeof pricingGroups[0]["tiers"] }[] = [];
-
-    for (const group of pricingGroups) {
-      let tiers = group.tiers;
-      if (activeCategory !== "all") {
-        tiers = tiers.filter((t) => t.category === activeCategory);
-      }
-      if (q) {
-        const matchModel = group.model.toLowerCase().includes(q);
-        if (!matchModel) {
-          tiers = tiers.filter(
-            (t) =>
-              t.name.toLowerCase().includes(q) ||
-              t.provider.toLowerCase().includes(q) ||
-              t.category.toLowerCase().includes(q)
-          );
-        }
-      }
-      if (tiers.length > 0) {
-        result.push({ id: group.id, model: group.model, tiers });
-      }
-    }
-    return result;
+    return pricingModels.filter((m) => {
+      if (activeCategory !== "all" && m.category !== activeCategory) return false;
+      if (q && !m.model.toLowerCase().includes(q) && !m.provider.toLowerCase().includes(q) && !m.category.toLowerCase().includes(q)) return false;
+      return true;
+    });
   }, [activeCategory, debouncedSearch]);
 
-  // Total tier count across all filtered groups
-  const totalTiers = filteredGroups.reduce((sum, g) => sum + g.tiers.length, 0);
-
-  // Paginate by groups, accumulating tier count up to rowsPerPage
-  const { pageGroups, totalPages, tierStart, tierEnd } = useMemo(() => {
-    // Build pages: each page accumulates groups until tier count >= rowsPerPage
-    const pages: typeof filteredGroups[] = [];
-    let current: typeof filteredGroups = [];
-    let currentTierCount = 0;
-
-    for (const group of filteredGroups) {
-      // If adding this group would exceed limit AND we already have some groups, start new page
-      if (currentTierCount > 0 && currentTierCount + group.tiers.length > rowsPerPage) {
-        pages.push(current);
-        current = [group];
-        currentTierCount = group.tiers.length;
-      } else {
-        current.push(group);
-        currentTierCount += group.tiers.length;
-      }
-    }
-    if (current.length > 0) pages.push(current);
-    if (pages.length === 0) pages.push([]);
-
-    const tp = pages.length;
-    const safePage = Math.min(page, tp);
-    const pg = pages[safePage - 1] || [];
-
-    // Calculate tier range for display
-    let start = 0;
-    for (let i = 0; i < safePage - 1; i++) {
-      start += pages[i].reduce((s, g) => s + g.tiers.length, 0);
-    }
-    const end = start + pg.reduce((s, g) => s + g.tiers.length, 0);
-
-    return { pageGroups: pg, totalPages: tp, tierStart: start + 1, tierEnd: end };
-  }, [filteredGroups, rowsPerPage, page]);
-
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
   const safePageNum = Math.min(page, totalPages);
+  const startIdx = (safePageNum - 1) * rowsPerPage;
+  const pageModels = filtered.slice(startIdx, startIdx + rowsPerPage);
+  const displayStart = total === 0 ? 0 : startIdx + 1;
+  const displayEnd = Math.min(startIdx + rowsPerPage, total);
 
-  // Reset page on filter/search change
   const handleCategoryChange = (cat: "all" | PricingCategory) => {
     setActiveCategory(cat);
     setPage(1);
@@ -213,7 +157,6 @@ export default function PricingPage() {
     setPage(1);
   };
 
-  // Page numbers
   const getPageNumbers = () => {
     const pages: (number | "...")[] = [];
     if (totalPages <= 7) {
@@ -221,22 +164,22 @@ export default function PricingPage() {
     } else {
       pages.push(1);
       if (safePageNum > 3) pages.push("...");
-      const start = Math.max(2, safePageNum - 1);
-      const end = Math.min(totalPages - 1, safePageNum + 1);
-      for (let i = start; i <= end; i++) pages.push(i);
+      const s = Math.max(2, safePageNum - 1);
+      const e = Math.min(totalPages - 1, safePageNum + 1);
+      for (let i = s; i <= e; i++) pages.push(i);
       if (safePageNum < totalPages - 2) pages.push("...");
       pages.push(totalPages);
     }
     return pages;
   };
 
+  const isChat = (m: PricingModel) => m.category === "chat";
+
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:pt-8">
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-          Bảng giá
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground md:text-3xl">Bảng giá</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Các model AI hàng đầu thế giới, mức giá cực kỳ hợp lý.
         </p>
@@ -260,9 +203,7 @@ export default function PricingPage() {
                 }`}
               >
                 {cat.label}
-                <span
-                  className={`text-xs ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}
-                >
+                <span className={`text-xs ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
                   {count}
                 </span>
               </button>
@@ -288,9 +229,9 @@ export default function PricingPage() {
           <PaginationBar
             rowsPerPage={rowsPerPage}
             onRowsPerPageChange={(val) => { setRowsPerPage(val); setPage(1); }}
-            tierStart={tierStart}
-            tierEnd={tierEnd}
-            totalTiers={totalTiers}
+            start={displayStart}
+            end={displayEnd}
+            total={total}
             page={safePageNum}
             totalPages={totalPages}
             onPageChange={setPage}
@@ -299,174 +240,172 @@ export default function PricingPage() {
         </div>
       )}
 
-      {/* Grouped pricing cards */}
-      <div className="space-y-4">
-        {pageGroups.map((group) => (
-          <div
-            key={group.id}
-            className="overflow-hidden rounded-xl border border-border"
-          >
-            {/* Group header */}
-            <div className="flex items-center gap-3 border-b border-border px-6 py-3.5">
-              <span className="text-base font-bold text-foreground">
-                {group.model}
-              </span>
-              <span className="text-xs font-medium text-primary">
-                {group.tiers.length} mức giá
-              </span>
-            </div>
-
-            {/* Desktop Table */}
-            <table className="hidden w-full md:table">
-              <thead>
-                <tr className="border-b border-border bg-muted/20">
-                  <th className="px-6 py-2 text-left text-xs font-medium text-muted-foreground">
-                    Model &amp; Loại
-                  </th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      Credits / Lần
-                      <Info className="size-3 text-muted-foreground/50" />
-                    </span>
-                  </th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-muted-foreground">
-                    Giá của chúng tôi (USD)
-                  </th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-muted-foreground">
-                    Giá thị trường (USD)
-                  </th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      GIẢM GIÁ
-                      <Info className="size-3 text-muted-foreground/50" />
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {group.tiers.map((tier, idx) => {
-                  const discount = calcDiscount(tier.ourPrice, tier.marketPrice);
-                  return (
-                    <tr
-                      key={idx}
-                      className="transition-colors hover:bg-muted/10"
-                    >
-                      <td className="px-6 py-3.5">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-semibold text-foreground">
-                            {tier.name}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[tier.category]}`}
-                            >
-                              {tier.category}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-foreground">
-                            {tier.credits}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {tier.creditUnit}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <span className="text-sm font-bold text-emerald-500">
-                          {formatPrice(tier.ourPrice)}
+      {/* Desktop Table */}
+      <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border bg-muted/20">
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Đơn vị</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (Operis)</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (Operis)</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input Official</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output Official</th>
+              <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Input)</th>
+              <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Output)</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {pageModels.map((m) => {
+              const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
+              const outputDiscount = isChat(m) ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
+              return (
+                <tr key={m.id} className="transition-colors hover:bg-muted/10">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-semibold text-foreground">{m.model}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category]}`}>
+                          {m.category}
                         </span>
-                      </td>
-                      <td className="px-6 py-3.5">
-                        {tier.marketPrice !== null ? (
-                          <span className="text-sm text-muted-foreground">
-                            {formatPrice(tier.marketPrice)}
-                          </span>
-                        ) : (
-                          <span className="inline-flex rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                            N/A
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        {discount ? (
-                          <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
-                            {discount}
-                            <ArrowDown className="size-3" />
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Mobile Cards */}
-            <div className="divide-y divide-border md:hidden">
-              {group.tiers.map((tier, idx) => {
-                const discount = calcDiscount(tier.ourPrice, tier.marketPrice);
-                return (
-                  <div key={idx} className="space-y-2 px-4 py-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">{tier.name}</span>
-                      <span
-                        className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[tier.category]}`}
-                      >
-                        {tier.category}
-                      </span>
+                        <span className="text-[11px] text-muted-foreground">{m.provider}</span>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/20 px-3 py-2">
-                      <div>
-                        <div className="text-[10px] text-muted-foreground">Credits</div>
-                        <div className="text-xs font-semibold text-foreground">{tier.credits}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-muted-foreground">/ {m.unit}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)}</span>
+                      <span className="text-xs text-muted-foreground">{formatUSD(m.inputPrice)}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isChat(m) ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)}</span>
+                        <span className="text-xs text-muted-foreground">{formatUSD(m.outputPrice)}</span>
                       </div>
-                      <div>
-                        <div className="text-[10px] text-muted-foreground">Giá</div>
-                        <div className="text-xs font-bold text-emerald-500">{formatPrice(tier.ourPrice)}</div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {m.inputOfficial !== null ? (
+                      <span className="text-sm text-muted-foreground">{formatUSD(m.inputOfficial)}</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">N/A</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isChat(m) && m.outputOfficial !== null ? (
+                      <span className="text-sm text-muted-foreground">{formatUSD(m.outputOfficial)}</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {inputDiscount ? (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
+                        <ArrowDown className="size-3" />
+                        {inputDiscount}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {outputDiscount ? (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
+                        <ArrowDown className="size-3" />
+                        {outputDiscount}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="space-y-3 md:hidden">
+        {pageModels.map((m) => {
+          const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
+          const outputDiscount = isChat(m) ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
+          return (
+            <div key={m.id} className="overflow-hidden rounded-xl border border-border">
+              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">{m.model}</span>
+                  <span className="text-[11px] text-muted-foreground">{m.provider} · / {m.unit}</span>
+                </div>
+                <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category]}`}>
+                  {m.category}
+                </span>
+              </div>
+              <div className="space-y-2 px-4 py-3">
+                {/* Input */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Input</span>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)}</div>
+                      <div className="text-[10px] text-muted-foreground">{formatUSD(m.inputPrice)}</div>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">vs {m.inputOfficial !== null ? formatUSD(m.inputOfficial) : "N/A"}</span>
+                    {inputDiscount && (
+                      <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
+                        <ArrowDown className="size-2.5" />
+                        {inputDiscount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {/* Output (chat only) */}
+                {isChat(m) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Output</span>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)}</div>
+                        <div className="text-[10px] text-muted-foreground">{formatUSD(m.outputPrice)}</div>
                       </div>
-                      <div>
-                        <div className="text-[10px] text-muted-foreground">Giảm</div>
-                        {discount ? (
-                          <div className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
-                            {discount}
-                            <ArrowDown className="size-2.5" />
-                          </div>
-                        ) : (
-                          <div className="text-xs text-muted-foreground">—</div>
-                        )}
-                      </div>
+                      <span className="text-[10px] text-muted-foreground">vs {m.outputOfficial !== null ? formatUSD(m.outputOfficial) : "N/A"}</span>
+                      {outputDiscount && (
+                        <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
+                          <ArrowDown className="size-2.5" />
+                          {outputDiscount}
+                        </span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-
-        {/* Empty state */}
-        {pageGroups.length === 0 && (
-          <div className="flex items-center justify-center rounded-xl border border-border py-20">
-            <p className="text-sm text-muted-foreground">
-              Không tìm thấy model nào.
-            </p>
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      {/* Empty state */}
+      {pageModels.length === 0 && (
+        <div className="flex items-center justify-center rounded-xl border border-border py-20">
+          <p className="text-sm text-muted-foreground">Không tìm thấy model nào.</p>
+        </div>
+      )}
 
       {/* Bottom pagination */}
       <div className="mt-4">
         <PaginationBar
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={(val) => { setRowsPerPage(val); setPage(1); }}
-          tierStart={tierStart}
-          tierEnd={tierEnd}
-          totalTiers={totalTiers}
+          start={displayStart}
+          end={displayEnd}
+          total={total}
           page={safePageNum}
           totalPages={totalPages}
           onPageChange={setPage}
