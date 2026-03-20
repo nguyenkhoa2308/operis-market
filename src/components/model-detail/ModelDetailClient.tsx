@@ -37,11 +37,12 @@ type Tab = "playground" | "examples" | "readme" | "api";
 function ChatPlaygroundTab({ slug }: { slug: string }) {
   const { messages, isStreaming, currentResponse, tokenUsage, error, send, stop, clearMessages } = usePlayground();
   const [input, setInput] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (messages.length > 0 || currentResponse) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      const el = chatContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
     }
   }, [messages, currentResponse]);
 
@@ -54,7 +55,7 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col h-[500px]">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !isStreaming && (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
             Gửi tin nhắn để bắt đầu thử model
@@ -89,7 +90,7 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
           </div>
         )}
         {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-        <div ref={bottomRef} />
+        <div />
       </div>
 
       {/* Token usage */}
