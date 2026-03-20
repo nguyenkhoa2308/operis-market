@@ -38,7 +38,7 @@ const NAV_SECTIONS: DocSection[] = [
 const QUICKSTART_CODE = [
   {
     label: "cURL",
-    code: `curl https://api.operis.vn/api/chat/completions \\
+    code: `curl https://models.operis.vn/api/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -54,7 +54,7 @@ const QUICKSTART_CODE = [
 
 client = OpenAI(
     api_key="YOUR_API_KEY",
-    base_url="https://api.operis.vn/api/chat"
+    base_url="https://models.operis.vn/api/chat"
 )
 
 response = client.chat.completions.create(
@@ -72,7 +72,7 @@ print(response.choices[0].message.content)`,
 
 const client = new OpenAI({
   apiKey: "YOUR_API_KEY",
-  baseURL: "https://api.operis.vn/api/chat",
+  baseURL: "https://models.operis.vn/api/chat",
 });
 
 const response = await client.chat.completions.create({
@@ -88,7 +88,7 @@ const AUTH_CODE = [
   {
     label: "cURL",
     code: `# Thêm API key vào header Authorization
-curl https://api.operis.vn/api/chat/completions \\
+curl https://models.operis.vn/api/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{ ... }'`,
@@ -101,7 +101,7 @@ from openai import OpenAI
 # Lưu key trong biến môi trường
 client = OpenAI(
     api_key=os.environ.get("OPERIS_API_KEY"),
-    base_url="https://api.operis.vn/api/chat"
+    base_url="https://models.operis.vn/api/chat"
 )`,
   },
   {
@@ -111,7 +111,7 @@ client = OpenAI(
 // Lưu key trong .env: OPERIS_API_KEY=your_key_here
 const client = new OpenAI({
   apiKey: process.env.OPERIS_API_KEY,
-  baseURL: "https://api.operis.vn/api/chat",
+  baseURL: "https://models.operis.vn/api/chat",
 });`,
   },
 ];
@@ -119,7 +119,7 @@ const client = new OpenAI({
 const CHAT_BASIC_CODE = [
   {
     label: "cURL",
-    code: `curl https://api.operis.vn/api/chat/completions \\
+    code: `curl https://models.operis.vn/api/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -185,7 +185,7 @@ console.log("Tokens:", response.usage?.total_tokens);`,
 const CHAT_STREAM_CODE = [
   {
     label: "cURL",
-    code: `curl https://api.operis.vn/api/chat/completions \\
+    code: `curl https://models.operis.vn/api/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   --no-buffer \\
@@ -229,14 +229,13 @@ for await (const chunk of stream) {
 const IMAGE_BASIC_CODE = [
   {
     label: "cURL",
-    code: `curl https://api.operis.vn/api/chat/image/generations \\
+    code: `curl https://models.operis.vn/api/chat/image/generations \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "nano-banana-2",
+    "model": "nano-banana-2-2k",
     "prompt": "A serene mountain lake at golden hour, photorealistic",
-    "aspect_ratio": "16:9",
-    "resolution": "2K"
+    "aspect_ratio": "16:9"
   }'`,
   },
   {
@@ -244,18 +243,17 @@ const IMAGE_BASIC_CODE = [
     code: `import requests
 
 response = requests.post(
-    "https://api.operis.vn/api/chat/image/generations",
+    "https://models.operis.vn/api/chat/image/generations",
     headers={
         "Authorization": "Bearer YOUR_API_KEY",
         "Content-Type": "application/json",
     },
     json={
-        "model": "nano-banana-2",
+        "model": "nano-banana-2-2k",
         "prompt": "A serene mountain lake at golden hour, photorealistic",
         "aspect_ratio": "16:9",
-        "resolution": "2K",
     },
-    timeout=150,  # Image generation có thể mất 10-60 giây
+    timeout=300,  # Image generation có thể mất 10-60 giây
 )
 
 data = response.json()["data"]
@@ -265,17 +263,16 @@ for img in data["data"]:
   },
   {
     label: "JavaScript",
-    code: `const response = await fetch("https://api.operis.vn/api/chat/image/generations", {
+    code: `const response = await fetch("https://models.operis.vn/api/chat/image/generations", {
   method: "POST",
   headers: {
     "Authorization": "Bearer YOUR_API_KEY",
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    model: "nano-banana-2",
+    model: "nano-banana-2-2k",
     prompt: "A serene mountain lake at golden hour, photorealistic",
     aspect_ratio: "16:9",
-    resolution: "2K",
   }),
 });
 
@@ -288,11 +285,11 @@ const IMAGE_COMPLETIONS_CODE = [
   {
     label: "cURL",
     code: `# Hoặc dùng endpoint /api/chat/completions với image model:
-curl https://api.operis.vn/api/chat/completions \\
+curl https://models.operis.vn/api/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "grok-imagine",
+    "model": "grok-imagine-t2i",
     "prompt": "Cyberpunk city at night, neon lights",
     "aspect_ratio": "1:1"
   }'`,
@@ -301,14 +298,14 @@ curl https://api.operis.vn/api/chat/completions \\
     label: "Python",
     code: `# Image models cũng hoạt động qua endpoint completions
 response = requests.post(
-    "https://api.operis.vn/api/chat/completions",
+    "https://models.operis.vn/api/chat/completions",
     headers={"Authorization": "Bearer YOUR_API_KEY"},
     json={
-        "model": "grok-imagine",
+        "model": "grok-imagine-t2i",
         "prompt": "Cyberpunk city at night, neon lights",
         "aspect_ratio": "1:1",
     },
-    timeout=150,
+    timeout=300,
 )
 
 images = response.json()["data"]["data"]
@@ -320,7 +317,7 @@ for img in images:
 const MODELS_CODE = [
   {
     label: "cURL",
-    code: `curl https://api.operis.vn/api/chat/models \\
+    code: `curl https://models.operis.vn/api/chat/models \\
   -H "Authorization: Bearer YOUR_API_KEY"`,
   },
   {
@@ -345,7 +342,7 @@ const EXAMPLE_CHATBOT_CODE = [
 
 client = OpenAI(
     api_key="YOUR_API_KEY",
-    base_url="https://api.operis.vn/api/chat"
+    base_url="https://models.operis.vn/api/chat"
 )
 
 history = [
@@ -382,7 +379,7 @@ import * as readline from "readline";
 
 const client = new OpenAI({
   apiKey: process.env.OPERIS_API_KEY,
-  baseURL: "https://api.operis.vn/api/chat",
+  baseURL: "https://models.operis.vn/api/chat",
 });
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -552,7 +549,7 @@ export default function DocsPage() {
               </p>
               <div className="space-y-4">
                 <Step n={1} title="Tạo tài khoản" desc="Đăng ký tại operis.vn và xác thực email." />
-                <Step n={2} title="Nạp credit" desc="Vào Thanh toán để nạp credit. 1 credit ≈ 1.000 tokens input." />
+                <Step n={2} title="Nạp tiền" desc="Vào Thanh toán để nạp tiền (VND) vào tài khoản." />
                 <Step
                   n={3}
                   title="Tạo API Key"
@@ -653,10 +650,9 @@ export default function DocsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <ParamRow name="model" type="string" required desc="Model ID: nano-banana-2, nano-banana-pro, grok-imagine" />
+                      <ParamRow name="model" type="string" required desc="Model ID (xem bảng Image Models bên dưới)" />
                       <ParamRow name="prompt" type="string" required desc="Mô tả hình ảnh muốn tạo" />
                       <ParamRow name="aspect_ratio" type="string" desc="Tỷ lệ ảnh: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3. Mặc định: 1:1" />
-                      <ParamRow name="resolution" type="string" desc="Độ phân giải: 1K, 2K, 4K. Mặc định: 1K (không áp dụng cho grok-imagine)" />
                     </tbody>
                   </table>
                 </div>
@@ -694,7 +690,7 @@ export default function DocsPage() {
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
                     <li>URL ảnh là <strong>tạm thời</strong> — tải về và lưu trữ riêng nếu cần dùng lâu dài.</li>
                     <li>Image models cũng hoạt động qua <InlineCode>/api/chat/completions</InlineCode> — hệ thống tự nhận diện image model.</li>
-                    <li>Credits bị trừ <strong>sau khi</strong> ảnh tạo thành công, không trừ nếu thất bại.</li>
+                    <li>Số dư bị trừ <strong>sau khi</strong> ảnh tạo thành công, không trừ nếu thất bại.</li>
                   </ul>
                 </div>
 
@@ -702,30 +698,35 @@ export default function DocsPage() {
               </SubSection>
 
               <SubSection id="image-models" title="Image Models">
+                <p className="text-sm text-muted-foreground">
+                  Độ phân giải được chọn qua model ID (ví dụ: <InlineCode>nano-banana-2-2k</InlineCode> cho 2K).
+                </p>
                 <div className="rounded-xl border border-border overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border bg-background-secondary">
                           <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Credits/ảnh</th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giá/ảnh (VND)</th>
                           <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Tỷ lệ hỗ trợ</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Độ phân giải</th>
                           <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Ghi chú</th>
                         </tr>
                       </thead>
                       <tbody>
                         {[
-                          { id: "nano-banana-2", credits: 10, ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", res: "1K, 2K, 4K", note: "Nhanh, chất lượng tốt" },
-                          { id: "nano-banana-pro", credits: 20, ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", res: "1K, 2K, 4K", note: "Chất lượng cao, chi tiết hơn" },
-                          { id: "grok-imagine", credits: 15, ratios: "1:1, 16:9, 9:16, 4:3, 3:4", res: "N/A", note: "Phong cách nghệ thuật, trả nhiều ảnh" },
-                          { id: "midjourney", credits: 25, ratios: "—", res: "—", note: "Sắp ra mắt" },
+                          { id: "nano-banana-2-1k", price: "1,040", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, 1K" },
+                          { id: "nano-banana-2-2k", price: "1,560", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, 2K" },
+                          { id: "nano-banana-2-4k", price: "2,340", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, 4K" },
+                          { id: "nano-banana-pro-half-2k", price: "2,340", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Chất lượng cao, 2K" },
+                          { id: "nano-banana-pro-4k", price: "3,120", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Chất lượng cao, 4K" },
+                          { id: "grok-imagine-t2i", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Text-to-image, trả nhiều ảnh" },
+                          { id: "grok-imagine-i2i", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Image-to-image" },
+                          { id: "midjourney", price: "650,000", ratios: "—", note: "Sắp ra mắt" },
                         ].map((m) => (
                           <tr key={m.id} className="border-b border-border last:border-0">
                             <td className="px-4 py-3"><InlineCode>{m.id}</InlineCode></td>
-                            <td className="px-4 py-3 text-muted-foreground">{m.credits}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{m.price}đ</td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">{m.ratios}</td>
-                            <td className="px-4 py-3 text-muted-foreground">{m.res}</td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">{m.note}</td>
                           </tr>
                         ))}
@@ -756,7 +757,7 @@ export default function DocsPage() {
               {/* Model list table */}
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="bg-background-secondary px-4 py-3 border-b border-border">
-                  <p className="text-sm font-medium text-foreground">Models hiện tại</p>
+                  <p className="text-sm font-medium text-foreground">Chat Models</p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -764,27 +765,35 @@ export default function DocsPage() {
                       <tr className="border-b border-border bg-background-secondary">
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
                         <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Loại</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (credits/1k tokens)</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (credits/1k tokens)</th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (VND/1M tokens)</th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (VND/1M tokens)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { id: "gemini-2.5-flash", type: "Chat", input: 2, output: 4 },
-                        { id: "gemini-2.5-pro", type: "Chat", input: 4, output: 8 },
-                        { id: "claude-sonnet-4-5", type: "Chat", input: 3, output: 6 },
-                        { id: "kimi-k2.5", type: "Chat", input: 1, output: 2 },
-                        { id: "kimi-k2-thinking", type: "Chat (Reasoning)", input: 2, output: 3 },
-                        { id: "deepseek-v3.2", type: "Chat", input: 1, output: 1 },
-                        { id: "gpt-5-4", type: "Chat", input: 5, output: 10 },
+                        { id: "gpt-oss-120b", type: "Chat", input: "806", output: "2,080" },
+                        { id: "gemini-2.5-flash", type: "Chat", input: "2,808", output: "23,400" },
+                        { id: "bytedance-seed-code", type: "Code", input: "3,536", output: "22,880" },
+                        { id: "gemini-3-flash", type: "Chat", input: "4,680", output: "28,080" },
+                        { id: "deepseek-v3.2", type: "Chat", input: "5,824", output: "8,736" },
+                        { id: "kimi-k2-thinking", type: "Reasoning", input: "9,776", output: "41,600" },
+                        { id: "gemini-2.5-pro", type: "Chat", input: "11,856", output: "93,600" },
+                        { id: "kimi-k2.5", type: "Chat", input: "12,480", output: "62,400" },
+                        { id: "glm-4.7", type: "Chat", input: "12,480", output: "45,760" },
+                        { id: "gpt-5-4", type: "Chat", input: "13,728", output: "109,200" },
+                        { id: "gemini-3-pro", type: "Chat", input: "15,600", output: "109,200" },
+                        { id: "gemini-3.1-pro", type: "Chat", input: "15,600", output: "109,200" },
+                        { id: "claude-sonnet-4-5", type: "Chat", input: "31,200", output: "93,600" },
+                        { id: "openai-codex", type: "Code", input: "78,000", output: "156,000" },
+                        { id: "claude-opus-4-5", type: "Chat", input: "93,600", output: "156,000" },
                       ].map((m) => (
                         <tr key={m.id} className="border-b border-border last:border-0">
                           <td className="px-4 py-3">
                             <InlineCode>{m.id}</InlineCode>
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{m.type}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.input}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.output}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{m.input}đ</td>
+                          <td className="px-4 py-3 text-muted-foreground">{m.output}đ</td>
                         </tr>
                       ))}
                     </tbody>
@@ -821,12 +830,12 @@ export default function DocsPage() {
                     <tr className="border-b border-border">
                       <td className="px-4 py-3 font-mono text-sm">402</td>
                       <td className="px-4 py-3 font-medium">Insufficient Credits</td>
-                      <td className="px-4 py-3 text-muted-foreground">Số credit không đủ, cần nạp thêm</td>
+                      <td className="px-4 py-3 text-muted-foreground">Số dư không đủ, cần nạp thêm</td>
                     </tr>
                     <tr className="border-b border-border">
                       <td className="px-4 py-3 font-mono text-sm">408</td>
                       <td className="px-4 py-3 font-medium">Request Timeout</td>
-                      <td className="px-4 py-3 text-muted-foreground">Tạo ảnh/video vượt quá thời gian cho phép (120s)</td>
+                      <td className="px-4 py-3 text-muted-foreground">Tạo ảnh/video vượt quá thời gian cho phép (300s)</td>
                     </tr>
                     <tr className="border-b border-border">
                       <td className="px-4 py-3 font-mono text-sm">429</td>
@@ -849,7 +858,7 @@ export default function DocsPage() {
                     label: "JSON",
                     code: `{
   "success": false,
-  "message": "Insufficient credits. Balance: 0"
+  "message": "Số dư không đủ. Số dư hiện tại: 0đ"
 }`,
                   }]}
                 />
