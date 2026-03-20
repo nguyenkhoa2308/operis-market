@@ -172,7 +172,7 @@ export default function ChatPanel({
           <span className="opacity-30">|</span>
           <span>Tổng: <span className="text-foreground font-medium">{tokenUsage.total.toLocaleString()}</span></span>
           <span className="opacity-30">|</span>
-          <span>Credits: <span className="text-primary font-medium">{tokenUsage.creditsConsumed}</span></span>
+          <span>Chi phí: <span className="text-primary font-medium">{Number(tokenUsage.costVnd).toLocaleString("vi-VN")}đ</span></span>
         </div>
       )}
 

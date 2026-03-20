@@ -44,8 +44,8 @@ export default function UsageBarChart({
   height?: number;
   compact?: boolean;
 }) {
-  const dataKey = mode === "spend" ? "spend" : "credits";
-  const fmt = (v: number) => (mode === "spend" ? `$${v}` : `${v}`);
+  const dataKey = mode === "spend" ? "spend" : "costVnd";
+  const fmt = (v: number) => (mode === "spend" ? `$${v}` : `${v.toLocaleString("vi-VN")}đ`);
 
   return (
     <ResponsiveContainer width="100%" height={height}>

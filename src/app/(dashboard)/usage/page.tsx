@@ -119,7 +119,7 @@ function PerAccountTab() {
                   <th className="pb-2 text-right font-medium">Requests</th>
                   <th className="pb-2 text-right font-medium">Prompt Tokens</th>
                   <th className="pb-2 text-right font-medium">Completion Tokens</th>
-                  <th className="pb-2 text-right font-medium">Credits</th>
+                  <th className="pb-2 text-right font-medium">Chi phí (VND)</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,7 +129,7 @@ function PerAccountTab() {
                     <td className="py-2.5 text-right text-foreground/80">{m.requests.toLocaleString()}</td>
                     <td className="py-2.5 text-right text-foreground/80">{m.promptTokens.toLocaleString()}</td>
                     <td className="py-2.5 text-right text-foreground/80">{m.completionTokens.toLocaleString()}</td>
-                    <td className="py-2.5 text-right font-medium text-foreground">{m.credits.toLocaleString()}</td>
+                    <td className="py-2.5 text-right font-medium text-foreground">{m.costVnd.toLocaleString("vi-VN")}đ</td>
                   </tr>
                 ))}
               </tbody>
@@ -166,7 +166,7 @@ function PerKeyTab() {
               <tr className="border-b border-border text-xs text-muted-foreground">
                 <th className="pb-2 text-left font-medium">Key</th>
                 <th className="pb-2 text-left font-medium">Alias</th>
-                <th className="pb-2 text-right font-medium">Spend (USD)</th>
+                <th className="pb-2 text-right font-medium">Spend (VND)</th>
                 <th className="pb-2 text-right font-medium">Max Budget</th>
                 <th className="pb-2 text-right font-medium">RPM</th>
                 <th className="pb-2 text-right font-medium">TPM</th>
@@ -189,10 +189,10 @@ function PerKeyTab() {
                   </td>
                   <td className="py-2.5 text-foreground/80">{k.keyAlias ?? "—"}</td>
                   <td className="py-2.5 text-right font-medium text-foreground">
-                    ${k.spend.toFixed(6)}
+                    {k.spend.toLocaleString("vi-VN")}đ
                   </td>
                   <td className="py-2.5 text-right text-foreground/80">
-                    {k.maxBudget != null ? `$${k.maxBudget.toFixed(2)}` : "—"}
+                    {k.maxBudget != null ? `${k.maxBudget.toLocaleString("vi-VN")}đ` : "—"}
                   </td>
                   <td className="py-2.5 text-right text-foreground/80">
                     {k.rpmLimit != null ? k.rpmLimit.toLocaleString() : "—"}

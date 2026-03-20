@@ -165,7 +165,7 @@ export default function BillingPage() {
           </h1>
         </div>
 
-        {/* Top row: Balance + Add Credits */}
+        {/* Top row: Balance + Nạp tiền */}
         <div className="mb-6 grid gap-6 lg:grid-cols-2">
           {/* Balance Information */}
           <div className="rounded-xl border border-border p-6">
@@ -220,7 +220,7 @@ export default function BillingPage() {
             </p>
           </div>
 
-          {/* Add Credits */}
+          {/* Nạp tiền */}
           <div className="rounded-xl border border-border p-6">
             <h2 className="mb-6 text-lg font-bold text-foreground">Nạp tiền</h2>
 
@@ -662,7 +662,7 @@ export default function BillingPage() {
         )}
       </Modal>
 
-      {/* Credit Alert Settings Modal */}
+      {/* Balance Alert Settings Modal */}
       <Modal open={alertModalOpen} onClose={() => { setAlertModalOpen(false); setNewThreshold(""); }}>
         <h3 className="text-lg font-bold text-foreground">Cài đặt cảnh báo</h3>
         <p className="mt-2 text-sm text-foreground">
