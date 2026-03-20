@@ -97,7 +97,7 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
         <div className="px-4 py-1.5 border-t border-border text-xs text-muted-foreground flex gap-3">
           <span>Prompt: {tokenUsage.prompt}</span>
           <span>Completion: {tokenUsage.completion}</span>
-          <span>Credits: {tokenUsage.creditsConsumed}</span>
+          <span>Chi phí: {Number(tokenUsage.costVnd).toLocaleString('vi-VN')}đ</span>
         </div>
       )}
 

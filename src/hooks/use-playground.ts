@@ -13,7 +13,7 @@ export interface TokenUsage {
   prompt: number;
   completion: number;
   total: number;
-  creditsConsumed: number;
+  costVnd: number;
 }
 
 export interface PlaygroundParams {
@@ -100,12 +100,12 @@ export function usePlayground() {
             try {
               const chunk = JSON.parse(raw);
               // Final usage event from our backend
-              if (chunk.credits) {
+              if (chunk.cost) {
                 setTokenUsage({
-                  prompt: chunk.credits.promptTokens,
-                  completion: chunk.credits.completionTokens,
-                  total: chunk.credits.promptTokens + chunk.credits.completionTokens,
-                  creditsConsumed: chunk.credits.consumed,
+                  prompt: chunk.cost.promptTokens ?? 0,
+                  completion: chunk.cost.completionTokens ?? 0,
+                  total: (chunk.cost.promptTokens ?? 0) + (chunk.cost.completionTokens ?? 0),
+                  costVnd: chunk.cost.vnd ?? 0,
                 });
                 continue;
               }
