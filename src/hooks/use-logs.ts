@@ -11,7 +11,7 @@ export interface LogEntry {
   duration: number;
   input: string;
   status: "success" | "failed" | "processing";
-  creditsConsumed: number;
+  costVnd: number;
   taskId: string;
   hasResult: boolean;
 }
@@ -19,7 +19,7 @@ export interface LogEntry {
 export interface DailyUsage {
   date: string;
   spend: number;
-  credits: number;
+  costVnd: number;
 }
 
 export interface UsageStats {
@@ -27,7 +27,7 @@ export interface UsageStats {
   endpointUsage: {
     name: string;
     totalSpend: number;
-    totalCredits: number;
+    totalCostVnd: number;
     daily: DailyUsage[];
   }[];
   keyUsage: {
@@ -36,7 +36,7 @@ export interface UsageStats {
     createdAt: string;
     lastUsed: string;
     totalSpend: number;
-    totalCredits: number;
+    totalCostVnd: number;
     daily: DailyUsage[];
   }[];
 }
@@ -74,14 +74,14 @@ export function useUsage() {
 }
 
 export interface AccountUsage {
-  totalCredits: number;
-  totalSpendUsd: number;
-  maxBudgetUsd: number | null;
+  totalCostVnd: number;
+  totalSpendVnd: number;
+  maxBudgetVnd: number | null;
   totalRequests: number;
   totalPromptTokens: number;
   totalCompletionTokens: number;
-  dailyUsage: { date: string; credits: number; requests: number }[];
-  modelUsage: { model: string; credits: number; requests: number; promptTokens: number; completionTokens: number }[];
+  dailyUsage: { date: string; costVnd: number; requests: number }[];
+  modelUsage: { model: string; costVnd: number; requests: number; promptTokens: number; completionTokens: number }[];
 }
 
 export interface KeyUsageItem {

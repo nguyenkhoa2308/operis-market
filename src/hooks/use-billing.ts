@@ -3,17 +3,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
-export interface CreditPackage {
+export interface TopupPackage {
   id: string;
   price: number;
-  credits: number;
   badge?: string;
 }
 
 export interface Transaction {
   id: string;
-  credits: number;
-  amount: number;
+  amountVnd: number;
   type: string;
   status: string;
   description: string | null;
@@ -23,8 +21,7 @@ export interface Transaction {
 export interface SepayOrder {
   transactionId: string;
   orderCode: string;
-  amount: number;
-  credits: number;
+  amountVnd: number;
   status: string;
   paymentInfo: {
     bankName: string;
@@ -48,7 +45,7 @@ export function useBalance() {
 }
 
 export function usePackages() {
-  return useQuery<CreditPackage[]>({
+  return useQuery<TopupPackage[]>({
     queryKey: ["billing", "packages"],
     queryFn: async () => {
       const res = await api.get("/billing/packages");
@@ -95,7 +92,7 @@ export function usePendingOrder() {
 
 export function useCreateSepayOrder() {
   return useMutation({
-    mutationFn: async (body: { amount: number; credits: number }) => {
+    mutationFn: async (body: { amount: number }) => {
       const res = await api.post("/billing/sepay/create-order", body);
       return res.data.data as SepayOrder;
     },

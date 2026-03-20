@@ -16,7 +16,7 @@ export interface UserSettings {
   userId: string;
   theme: string;
   emailNotifications: boolean;
-  creditAlerts: number[];
+  balanceAlerts: number[];
 }
 
 export interface TeamMember {
@@ -48,7 +48,7 @@ export function useSettings(enabled = true) {
 export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (body: { theme?: string; emailNotifications?: boolean; creditAlerts?: number[] }) => {
+    mutationFn: async (body: { theme?: string; emailNotifications?: boolean; balanceAlerts?: number[] }) => {
       const res = await api.put("/settings", body);
       return res.data.data;
     },

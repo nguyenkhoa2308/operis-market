@@ -171,7 +171,7 @@ export default function BillingPage() {
           <div className="rounded-xl border border-border p-6">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-lg font-bold text-foreground">Balance Information</h2>
-              <button type="button" onClick={() => { setDraftAlerts(settings?.creditAlerts ?? []); setAlertModalOpen(true); }} className="cursor-pointer rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" title="Cài đặt cảnh báo credits">
+              <button type="button" onClick={() => { setDraftAlerts(settings?.balanceAlerts ?? []); setAlertModalOpen(true); }} className="cursor-pointer rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" title="Cài đặt cảnh báo số dư">
                 <Bell className="size-5" />
               </button>
             </div>
@@ -181,17 +181,16 @@ export default function BillingPage() {
                 {balanceLoading ? (
                   <span className="inline-block h-10 w-20 animate-pulse rounded-lg bg-muted" />
                 ) : (
-                  <span className="text-4xl font-bold text-foreground">{balanceData?.balance ?? 0}</span>
+                  <span className="text-4xl font-bold text-foreground">{fmtVND(balanceData?.balance ?? 0)}</span>
                 )}
-                <span className="text-base text-muted-foreground">credits</span>
               </div>
-              <span className="text-sm text-muted-foreground">Current Balance</span>
+              <span className="text-sm text-muted-foreground">Số dư hiện tại</span>
             </div>
 
             <div className="mb-5 flex items-start gap-2">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" />
               <p className="text-sm text-muted-foreground">
-                Credits không hết hạn và có thể sử dụng bất cứ lúc nào
+                Số dư không hết hạn và có thể sử dụng bất cứ lúc nào
               </p>
             </div>
 
@@ -223,7 +222,7 @@ export default function BillingPage() {
 
           {/* Add Credits */}
           <div className="rounded-xl border border-border p-6">
-            <h2 className="mb-6 text-lg font-bold text-foreground">Nạp Credits</h2>
+            <h2 className="mb-6 text-lg font-bold text-foreground">Nạp tiền</h2>
 
             {/* Select Package */}
             <p className="mb-3 text-sm font-semibold text-foreground">Chọn gói nạp</p>
@@ -256,9 +255,6 @@ export default function BillingPage() {
                         <div className={`text-xl font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
                           {fmtVND(pkg.price)}
                         </div>
-                        <div className={`text-xs ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                          {pkg.credits.toLocaleString()} credits
-                        </div>
                       </button>
                     );
                   })}
@@ -282,7 +278,7 @@ export default function BillingPage() {
                   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-semibold text-white transition-colors hover:bg-amber-600 sm:rounded-full sm:text-sm"
                 >
                   <QrCode className="size-4 shrink-0" />
-                  <span>Tiếp tục thanh toán — {fmtVND(pendingOrder!.amount)}</span>
+                  <span>Tiếp tục thanh toán — {fmtVND(pendingOrder!.amountVnd)}</span>
                 </button>
                 <p className="text-center text-xs text-muted-foreground">
                   Bạn đang có đơn chờ thanh toán. Hoàn tất hoặc huỷ đơn cũ để tạo đơn mới.
@@ -295,7 +291,7 @@ export default function BillingPage() {
                 onClick={() => {
                   if (!selectedPkg) return;
                   createOrder.mutate(
-                    { amount: Number(selectedPkg.price), credits: Number(selectedPkg.credits) },
+                    { amount: Number(selectedPkg.price) },
                     {
                       onSuccess: (data) => {
                         setOrderId(data.transactionId);
@@ -311,7 +307,7 @@ export default function BillingPage() {
                   {createOrder.isPending
                     ? "Đang tạo đơn..."
                     : selectedPkg
-                      ? `Thanh toán ${fmtVND(selectedPkg.price)} — ${selectedPkg.credits.toLocaleString()} credits`
+                      ? `Thanh toán ${fmtVND(selectedPkg.price)}`
                       : "Chọn gói nạp"}
                 </span>
               </button>
@@ -332,9 +328,8 @@ export default function BillingPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${tx.status === "completed" ? "text-emerald-500" : "text-muted-foreground"}`}>
-                      {tx.status === "completed" ? "+" : ""}{tx.credits.toLocaleString()}
+                      {tx.status === "completed" ? "+" : ""}{fmtVND(tx.amountVnd)}
                     </span>
-                    <span className="text-sm text-foreground">{fmtVND(tx.amount)}</span>
                     <StatusBadge status={tx.status} />
                   </div>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">{new Date(tx.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>
@@ -376,9 +371,6 @@ export default function BillingPage() {
                   Thời gian
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground">
-                  Credits
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground">
                   Số tiền
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground">
@@ -397,11 +389,8 @@ export default function BillingPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`text-sm font-semibold ${tx.status === "completed" ? "text-emerald-500" : "text-muted-foreground"}`}>
-                      {tx.status === "completed" ? "+" : ""}{tx.credits.toLocaleString()}
+                      {tx.status === "completed" ? "+" : ""}{fmtVND(tx.amountVnd)}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground">
-                    {fmtVND(tx.amount)}
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={tx.status} />
@@ -445,7 +434,7 @@ export default function BillingPage() {
               ))}
               {pagedTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     Chưa có giao dịch nào.
                   </td>
                 </tr>
@@ -512,7 +501,7 @@ export default function BillingPage() {
             <>
               <h3 className="text-lg font-bold text-emerald-500">Thanh toán thành công!</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Bạn đã nhận được <span className="font-semibold text-emerald-500">{orderStatus.credits.toLocaleString()} credits</span>.
+                Số dư đã được cộng <span className="font-semibold text-emerald-500">{fmtVND(orderStatus.amountVnd)}</span>.
               </p>
               <button
                 type="button"
@@ -527,8 +516,7 @@ export default function BillingPage() {
             <>
               <h3 className="text-lg font-bold text-foreground">Thanh toán qua QR Code</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Quét mã QR bên dưới để thanh toán <span className="font-semibold text-foreground">{fmtVND(od?.amount ?? 0)}</span> và
-                nhận <span className="font-semibold text-emerald-500">{od?.credits?.toLocaleString() ?? "—"} credits</span>
+                Quét mã QR bên dưới để thanh toán <span className="font-semibold text-foreground">{fmtVND(od?.amountVnd ?? 0)}</span>
               </p>
 
               {/* QR Image */}
@@ -572,7 +560,7 @@ export default function BillingPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Số tiền</span>
                   <span className="text-sm font-bold text-primary">
-                    {fmtVND(od?.amount ?? 0)}
+                    {fmtVND(od?.amountVnd ?? 0)}
                   </span>
                 </div>
               </div>
@@ -605,7 +593,7 @@ export default function BillingPage() {
               </button>
 
               <p className="mt-3 text-center text-xs text-muted-foreground">
-                Credits sẽ được cộng tự động trong vòng 1-2 phút sau khi thanh toán thành công.
+                Số dư sẽ được cộng tự động trong vòng 1-2 phút sau khi thanh toán thành công.
               </p>
             </>
           );
@@ -633,12 +621,8 @@ export default function BillingPage() {
                 <span className="text-sm text-foreground">{detailTx.type}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Credits</span>
-                <span className={`text-sm font-semibold ${detailTx.status === "completed" ? "text-emerald-500" : "text-muted-foreground"}`}>{detailTx.status === "completed" ? "+" : ""}{detailTx.credits.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Số tiền</span>
-                <span className="text-sm font-semibold text-foreground">{fmtVND(detailTx.amount)}</span>
+                <span className={`text-sm font-semibold ${detailTx.status === "completed" ? "text-emerald-500" : "text-muted-foreground"}`}>{detailTx.status === "completed" ? "+" : ""}{fmtVND(detailTx.amountVnd)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Trạng thái</span>
@@ -682,16 +666,16 @@ export default function BillingPage() {
       <Modal open={alertModalOpen} onClose={() => { setAlertModalOpen(false); setNewThreshold(""); }}>
         <h3 className="text-lg font-bold text-foreground">Cài đặt cảnh báo</h3>
         <p className="mt-2 text-sm text-foreground">
-          Thiết lập tối đa 3 ngưỡng credits để nhận thông báo qua email
+          Thiết lập tối đa 3 ngưỡng số dư (VND) để nhận thông báo qua email
         </p>
         <p className="text-xs text-muted-foreground">
-          Bạn sẽ nhận email khi số dư credits giảm xuống dưới ngưỡng đã đặt
+          Bạn sẽ nhận email khi số dư giảm xuống dưới ngưỡng đã đặt
         </p>
 
         <div className="mt-5 space-y-2">
           {draftAlerts.map((threshold, i) => (
             <div key={i} className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5">
-              <span className="flex-1 text-sm text-foreground">{threshold.toLocaleString()} credits</span>
+              <span className="flex-1 text-sm text-foreground">{threshold.toLocaleString("vi-VN")}đ</span>
               <button
                 type="button"
                 onClick={() => setDraftAlerts(draftAlerts.filter((_, j) => j !== i))}
@@ -707,7 +691,7 @@ export default function BillingPage() {
               <input
                 type="number"
                 min={1}
-                placeholder="Nhập ngưỡng credits"
+                placeholder="Nhập ngưỡng VND"
                 value={newThreshold}
                 onChange={(e) => setNewThreshold(e.target.value)}
                 className="flex-1 rounded-lg border border-border bg-transparent px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
@@ -744,7 +728,7 @@ export default function BillingPage() {
             type="button"
             disabled={updateSettings.isPending}
             onClick={() => {
-              updateSettings.mutate({ creditAlerts: draftAlerts }, {
+              updateSettings.mutate({ balanceAlerts: draftAlerts }, {
                 onSuccess: () => { setAlertModalOpen(false); setNewThreshold(""); },
               });
             }}

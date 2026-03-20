@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import type { DailyUsage } from "@/hooks/use-logs";
 
-type MetricMode = "spend" | "credits";
+type MetricMode = "spend" | "costVnd";
 
 /* ─── Custom Tooltip ─── */
 function CustomTooltip(props: { mode: MetricMode } & Record<string, unknown>) {
@@ -23,7 +23,7 @@ function CustomTooltip(props: { mode: MetricMode } & Record<string, unknown>) {
   };
   if (!active || !payload?.length) return null;
   const val = payload[0].value ?? 0;
-  const fmt = mode === "spend" ? `$${val}` : `${val} credits`;
+  const fmt = mode === "spend" ? `$${val}` : `${val.toLocaleString("vi-VN")}đ`;
 
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">

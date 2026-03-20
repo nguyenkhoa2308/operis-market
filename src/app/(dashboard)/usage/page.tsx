@@ -69,9 +69,9 @@ function PerAccountTab() {
     );
   }
 
-  const totalCredits = data?.totalCredits ?? 0;
-  const totalSpendUsd = data?.totalSpendUsd ?? 0;
-  const maxBudgetUsd = data?.maxBudgetUsd;
+  const totalCostVnd = data?.totalCostVnd ?? 0;
+  const totalSpendVnd = data?.totalSpendVnd ?? 0;
+  const maxBudgetVnd = data?.maxBudgetVnd;
   const totalRequests = data?.totalRequests ?? 0;
   const dailyUsage = data?.dailyUsage ?? [];
   const modelUsage = data?.modelUsage ?? [];
@@ -79,10 +79,10 @@ function PerAccountTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard icon={TrendingUp} label="Total Credits" value={totalCredits.toLocaleString()} />
-        <StatCard icon={DollarSign} label="Spend (USD)" value={`$${totalSpendUsd.toFixed(4)}`} />
-        {maxBudgetUsd != null && (
-          <StatCard icon={Shield} label="Max Budget" value={`$${maxBudgetUsd.toFixed(2)}`} />
+        <StatCard icon={TrendingUp} label="Chi phí (VND)" value={totalCostVnd.toLocaleString("vi-VN") + "đ"} />
+        <StatCard icon={DollarSign} label="Spend (VND)" value={totalSpendVnd.toLocaleString("vi-VN") + "đ"} />
+        {maxBudgetVnd != null && (
+          <StatCard icon={Shield} label="Max Budget" value={maxBudgetVnd.toLocaleString("vi-VN") + "đ"} />
         )}
         <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
         <StatCard
@@ -98,9 +98,9 @@ function PerAccountTab() {
       </div>
 
       <div className="rounded-xl border border-border p-4 sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Daily Credits Usage</h3>
+        <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phí hàng ngày (VND)</h3>
         {dailyUsage.length > 0 ? (
-          <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, credits: d.credits, spend: 0 }))} mode="credits" />
+          <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0 }))} mode="costVnd" />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
             No usage data yet
