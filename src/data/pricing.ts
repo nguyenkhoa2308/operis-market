@@ -24,15 +24,16 @@ export const pricingCategoryTabs: { id: "all" | PricingCategory; label: string }
 
 export const pricingModels: PricingModel[] = [
   // ── Moonshot ──
-  { id: "kimi-k2.5", model: "Kimi K2.5", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 1, outputPrice: 2, inputOfficial: 2, outputOfficial: 4 },
-  { id: "kimi-k2-thinking", model: "Kimi K2 Thinking", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 2, outputPrice: 3, inputOfficial: 4, outputOfficial: 6 },
+  { id: "kimi-k2.5", model: "Kimi K2.5", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 0.48, outputPrice: 2.40, inputOfficial: 0.60, outputOfficial: 3.00 },
+  { id: "kimi-k2-thinking", model: "Kimi K2 Thinking", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 0.376, outputPrice: 1.60, inputOfficial: 0.47, outputOfficial: 2.00 },
+  // ── OpenAI ──
+  { id: "gpt-oss-120b", model: "GPT OSS 120B", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 0.031, outputPrice: 0.08, inputOfficial: 0.039, outputOfficial: 0.10 },
   // ── ByteDance ──
-  { id: "gpt-oss-120b", model: "GPT OSS 120B", category: "chat", provider: "ByteDance", unit: "1M tokens", inputPrice: 2, outputPrice: 4, inputOfficial: 4, outputOfficial: 8 },
-  { id: "bytedance-seed-code", model: "ByteDance Seed Code", category: "chat", provider: "ByteDance", unit: "1M tokens", inputPrice: 2, outputPrice: 3, inputOfficial: 4, outputOfficial: 6 },
+  { id: "bytedance-seed-code", model: "ByteDance Seed Code", category: "chat", provider: "ByteDance", unit: "1M tokens", inputPrice: 0.136, outputPrice: 0.88, inputOfficial: 0.17, outputOfficial: 1.10 },
   // ── Zhipu ──
-  { id: "glm-4.7", model: "GLM-4.7", category: "chat", provider: "Zhipu", unit: "1M tokens", inputPrice: 1, outputPrice: 1, inputOfficial: 2, outputOfficial: 2 },
+  { id: "glm-4.7", model: "GLM-4.7", category: "chat", provider: "Zhipu", unit: "1M tokens", inputPrice: 0.48, outputPrice: 1.76, inputOfficial: 0.60, outputOfficial: 2.20 },
   // ── DeepSeek ──
-  { id: "deepseek-v3.2", model: "DeepSeek V3.2", category: "chat", provider: "DeepSeek", unit: "1M tokens", inputPrice: 1, outputPrice: 1, inputOfficial: 2, outputOfficial: 2 },
+  { id: "deepseek-v3.2", model: "DeepSeek V3.2", category: "chat", provider: "DeepSeek", unit: "1M tokens", inputPrice: 0.224, outputPrice: 0.336, inputOfficial: 0.28, outputOfficial: 0.42 },
   // ── Google ──
   { id: "gemini-2.5-flash", model: "Gemini 2.5 Flash", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.108, outputPrice: 0.90, inputOfficial: 0.30, outputOfficial: 2.50 },
   { id: "gemini-2.5-pro", model: "Gemini 2.5 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.456, outputPrice: 3.60, inputOfficial: 1.25, outputOfficial: 10.00 },
