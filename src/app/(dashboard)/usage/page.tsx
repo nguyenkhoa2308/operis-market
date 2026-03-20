@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { TrendingUp, Activity, Key, BarChart3, DollarSign, Shield } from "lucide-react";
+import { TrendingUp, Activity, Key, BarChart3, DollarSign, Shield, Zap, Calendar } from "lucide-react";
 import { useAccountUsage, useKeyUsage } from "@/hooks/use-logs";
 
 const UsageBarChart = dynamic(
@@ -11,6 +11,18 @@ const UsageBarChart = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex h-[280px] items-center justify-center">
+        <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    ),
+  },
+);
+
+const ModelPieChart = dynamic(
+  () => import("@/components/dashboard/ModelPieChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[300px] items-center justify-center">
         <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     ),
@@ -39,6 +51,26 @@ function StatCard({
   );
 }
 
+function BudgetProgress({ spent, max }: { spent: number; max: number }) {
+  const pct = max > 0 ? Math.min((spent / max) * 100, 100) : 0;
+  const color = pct > 90 ? "bg-red-500" : pct > 70 ? "bg-yellow-500" : "bg-primary";
+
+  return (
+    <div className="rounded-lg bg-muted/30 px-4 py-3">
+      <div className="mb-1.5 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Budget Used</span>
+        <span className="font-medium text-foreground">{pct.toFixed(1)}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        {spent.toLocaleString("vi-VN")}đ / {max.toLocaleString("vi-VN")}đ
+      </p>
+    </div>
+  );
+}
+
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "—";
   try {
@@ -58,8 +90,20 @@ function formatDateTime(dateStr: string | null) {
   }
 }
 
+function getDefaultDates() {
+  const to = new Date();
+  const from = new Date(Date.now() - 30 * 86400000);
+  return {
+    from: from.toISOString().split("T")[0],
+    to: to.toISOString().split("T")[0],
+  };
+}
+
 function PerAccountTab() {
-  const { data, isLoading } = useAccountUsage();
+  const defaults = useMemo(getDefaultDates, []);
+  const [startDate, setStartDate] = useState(defaults.from);
+  const [endDate, setEndDate] = useState(defaults.to);
+  const { data, isLoading } = useAccountUsage(startDate, endDate);
 
   if (isLoading) {
     return (
@@ -73,34 +117,84 @@ function PerAccountTab() {
   const totalSpendVnd = data?.totalSpendVnd ?? 0;
   const maxBudgetVnd = data?.maxBudgetVnd;
   const totalRequests = data?.totalRequests ?? 0;
+  const totalPromptTokens = data?.totalPromptTokens ?? 0;
+  const totalCompletionTokens = data?.totalCompletionTokens ?? 0;
   const dailyUsage = data?.dailyUsage ?? [];
   const modelUsage = data?.modelUsage ?? [];
+  const avgCost = totalRequests > 0 ? totalCostVnd / totalRequests : 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard icon={TrendingUp} label="Chi phí (VND)" value={totalCostVnd.toLocaleString("vi-VN") + "đ"} />
-        <StatCard icon={DollarSign} label="Spend (VND)" value={totalSpendVnd.toLocaleString("vi-VN") + "đ"} />
-        {maxBudgetVnd != null && (
-          <StatCard icon={Shield} label="Max Budget" value={maxBudgetVnd.toLocaleString("vi-VN") + "đ"} />
-        )}
-        <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
-        <StatCard
-          icon={BarChart3}
-          label="Prompt Tokens"
-          value={(data?.totalPromptTokens ?? 0).toLocaleString()}
+      {/* Date Range Picker */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Calendar className="size-4 text-muted-foreground" />
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
         />
-        <StatCard
-          icon={BarChart3}
-          label="Completion Tokens"
-          value={(data?.totalCompletionTokens ?? 0).toLocaleString()}
+        <span className="text-sm text-muted-foreground">—</span>
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
         />
       </div>
 
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <StatCard icon={TrendingUp} label="Chi phi (VND)" value={totalCostVnd.toLocaleString("vi-VN") + "d"} />
+        <StatCard icon={DollarSign} label="LiteLLM Spend" value={totalSpendVnd.toLocaleString("vi-VN") + "d"} />
+        <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
+        <StatCard icon={Zap} label="Avg Cost/Request" value={avgCost.toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + "d"} />
+        <StatCard icon={BarChart3} label="Prompt Tokens" value={totalPromptTokens.toLocaleString()} />
+        <StatCard icon={BarChart3} label="Completion Tokens" value={totalCompletionTokens.toLocaleString()} />
+        {maxBudgetVnd != null && (
+          <StatCard icon={Shield} label="Max Budget" value={maxBudgetVnd.toLocaleString("vi-VN") + "d"} />
+        )}
+      </div>
+
+      {/* Budget Progress */}
+      {maxBudgetVnd != null && maxBudgetVnd > 0 && (
+        <BudgetProgress spent={totalCostVnd} max={maxBudgetVnd} />
+      )}
+
+      {/* Charts row: Daily Cost + Model Pie */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-border p-4 sm:p-6">
+          <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phi hang ngay (VND)</h3>
+          {dailyUsage.length > 0 ? (
+            <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0, requests: d.requests }))} mode="costVnd" />
+          ) : (
+            <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
+              No usage data yet
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border p-4 sm:p-6">
+          <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phi theo Model</h3>
+          {modelUsage.length > 0 ? (
+            <ModelPieChart data={modelUsage.map((m) => ({ name: m.model, value: m.costVnd }))} />
+          ) : (
+            <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
+              No model usage yet
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Daily Request Count Chart */}
       <div className="rounded-xl border border-border p-4 sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phí hàng ngày (VND)</h3>
+        <h3 className="mb-4 text-sm font-semibold text-foreground">Requests hang ngay</h3>
         {dailyUsage.length > 0 ? (
-          <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0 }))} mode="costVnd" />
+          <UsageBarChart
+            data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0, requests: d.requests }))}
+            mode="requests"
+            height={200}
+          />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
             No usage data yet
@@ -108,6 +202,7 @@ function PerAccountTab() {
         )}
       </div>
 
+      {/* Model Breakdown Table */}
       <div className="rounded-xl border border-border p-4 sm:p-6">
         <h3 className="mb-4 text-sm font-semibold text-foreground">Breakdown by Model</h3>
         {modelUsage.length > 0 ? (
@@ -119,19 +214,42 @@ function PerAccountTab() {
                   <th className="pb-2 text-right font-medium">Requests</th>
                   <th className="pb-2 text-right font-medium">Prompt Tokens</th>
                   <th className="pb-2 text-right font-medium">Completion Tokens</th>
-                  <th className="pb-2 text-right font-medium">Chi phí (VND)</th>
+                  <th className="pb-2 text-right font-medium">Token Ratio</th>
+                  <th className="pb-2 text-right font-medium">Avg Cost</th>
+                  <th className="pb-2 text-right font-medium">Chi phi (VND)</th>
                 </tr>
               </thead>
               <tbody>
-                {modelUsage.map((m) => (
-                  <tr key={m.model} className="border-b border-border/50 last:border-0">
-                    <td className="py-2.5 font-mono text-xs text-foreground/80">{m.model}</td>
-                    <td className="py-2.5 text-right text-foreground/80">{m.requests.toLocaleString()}</td>
-                    <td className="py-2.5 text-right text-foreground/80">{m.promptTokens.toLocaleString()}</td>
-                    <td className="py-2.5 text-right text-foreground/80">{m.completionTokens.toLocaleString()}</td>
-                    <td className="py-2.5 text-right font-medium text-foreground">{m.costVnd.toLocaleString("vi-VN")}đ</td>
-                  </tr>
-                ))}
+                {modelUsage.map((m) => {
+                  const totalTokens = m.promptTokens + m.completionTokens;
+                  const promptPct = totalTokens > 0 ? (m.promptTokens / totalTokens) * 100 : 0;
+                  const avgModelCost = m.requests > 0 ? m.costVnd / m.requests : 0;
+
+                  return (
+                    <tr key={m.model} className="border-b border-border/50 last:border-0">
+                      <td className="py-2.5 font-mono text-xs text-foreground/80">{m.model}</td>
+                      <td className="py-2.5 text-right text-foreground/80">{m.requests.toLocaleString()}</td>
+                      <td className="py-2.5 text-right text-foreground/80">{m.promptTokens.toLocaleString()}</td>
+                      <td className="py-2.5 text-right text-foreground/80">{m.completionTokens.toLocaleString()}</td>
+                      <td className="py-2.5 text-right">
+                        {totalTokens > 0 ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                              <div className="h-full rounded-full bg-blue-500" style={{ width: `${promptPct}%` }} />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">{promptPct.toFixed(0)}%</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 text-right text-foreground/60">
+                        {avgModelCost.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}d
+                      </td>
+                      <td className="py-2.5 text-right font-medium text-foreground">{m.costVnd.toLocaleString("vi-VN")}d</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -189,10 +307,10 @@ function PerKeyTab() {
                   </td>
                   <td className="py-2.5 text-foreground/80">{k.keyAlias ?? "—"}</td>
                   <td className="py-2.5 text-right font-medium text-foreground">
-                    {k.spend.toLocaleString("vi-VN")}đ
+                    {k.spend.toLocaleString("vi-VN")}d
                   </td>
                   <td className="py-2.5 text-right text-foreground/80">
-                    {k.maxBudget != null ? `${k.maxBudget.toLocaleString("vi-VN")}đ` : "—"}
+                    {k.maxBudget != null ? `${k.maxBudget.toLocaleString("vi-VN")}d` : "—"}
                   </td>
                   <td className="py-2.5 text-right text-foreground/80">
                     {k.rpmLimit != null ? k.rpmLimit.toLocaleString() : "—"}

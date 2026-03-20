@@ -20,6 +20,7 @@ export interface DailyUsage {
   date: string;
   spend: number;
   costVnd: number;
+  requests: number;
 }
 
 export interface UsageStats {

@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import type { DailyUsage } from "@/hooks/use-logs";
 
-type MetricMode = "spend" | "costVnd";
+type MetricMode = "spend" | "costVnd" | "requests";
 
 /* ─── Custom Tooltip ─── */
 function CustomTooltip(props: { mode: MetricMode } & Record<string, unknown>) {
@@ -23,7 +23,7 @@ function CustomTooltip(props: { mode: MetricMode } & Record<string, unknown>) {
   };
   if (!active || !payload?.length) return null;
   const val = payload[0].value ?? 0;
-  const fmt = mode === "spend" ? `$${val}` : `${val.toLocaleString("vi-VN")}đ`;
+  const fmt = mode === "spend" ? `$${val}` : mode === "costVnd" ? `${val.toLocaleString("vi-VN")}đ` : val.toLocaleString();
 
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">
@@ -44,8 +44,8 @@ export default function UsageBarChart({
   height?: number;
   compact?: boolean;
 }) {
-  const dataKey = mode === "spend" ? "spend" : "costVnd";
-  const fmt = (v: number) => (mode === "spend" ? `$${v}` : `${v.toLocaleString("vi-VN")}đ`);
+  const dataKey = mode === "spend" ? "spend" : mode === "costVnd" ? "costVnd" : "requests";
+  const fmt = (v: number) => mode === "spend" ? `$${v}` : mode === "costVnd" ? `${v.toLocaleString("vi-VN")}đ` : v.toLocaleString();
 
   return (
     <ResponsiveContainer width="100%" height={height}>
