@@ -721,7 +721,9 @@ export default function DocsPage() {
                           { id: "nano-banana-pro-4k", price: "3,120", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Chất lượng cao, 4K" },
                           { id: "grok-imagine-t2i", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Text-to-image, trả nhiều ảnh" },
                           { id: "grok-imagine-i2i", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Image-to-image" },
-                          { id: "midjourney", price: "650,000", ratios: "—", note: "Sắp ra mắt" },
+                          { id: "midjourney-relaxed", price: "~390", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Coming soon — chậm, rẻ nhất" },
+                          { id: "midjourney-fast", price: "~1,040", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Coming soon — tốc độ trung bình" },
+                          { id: "midjourney-turbo", price: "~2,080", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Coming soon — nhanh nhất" },
                         ].map((m) => (
                           <tr key={m.id} className="border-b border-border last:border-0">
                             <td className="px-4 py-3"><InlineCode>{m.id}</InlineCode></td>
