@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { TrendingUp, Activity, Key, BarChart3, DollarSign, Shield, Zap, Calendar } from "lucide-react";
+import { TrendingUp, Activity, Key, BarChart3, Shield, Zap, Calendar } from "lucide-react";
 import { useAccountUsage, useKeyUsage } from "@/hooks/use-logs";
 
 const UsageBarChart = dynamic(
@@ -114,7 +114,6 @@ function PerAccountTab() {
   }
 
   const totalCostVnd = data?.totalCostVnd ?? 0;
-  const totalSpendVnd = data?.totalSpendVnd ?? 0;
   const maxBudgetVnd = data?.maxBudgetVnd;
   const totalRequests = data?.totalRequests ?? 0;
   const totalPromptTokens = data?.totalPromptTokens ?? 0;
@@ -146,7 +145,6 @@ function PerAccountTab() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard icon={TrendingUp} label="Chi phi (VND)" value={totalCostVnd.toLocaleString("vi-VN") + "d"} />
-        <StatCard icon={DollarSign} label="LiteLLM Spend" value={totalSpendVnd.toLocaleString("vi-VN") + "d"} />
         <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
         <StatCard icon={Zap} label="Avg Cost/Request" value={avgCost.toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + "d"} />
         <StatCard icon={BarChart3} label="Prompt Tokens" value={totalPromptTokens.toLocaleString()} />
