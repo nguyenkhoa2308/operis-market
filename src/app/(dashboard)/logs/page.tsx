@@ -251,7 +251,7 @@ export default function LogsPage() {
               <span className="text-border">|</span>
               <span>{log.duration}s</span>
               <span className="text-border">|</span>
-              <span className="font-medium text-foreground">{log.creditsConsumed} credits</span>
+              <span className="font-medium text-foreground">{Number(log.costVnd).toLocaleString('vi-VN')}đ</span>
             </div>
 
             {/* Task ID */}
@@ -324,7 +324,7 @@ export default function LogsPage() {
                 Status
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
-                Credits Consumed
+                Chi phí (VND)
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
                 Task ID
@@ -390,9 +390,9 @@ export default function LogsPage() {
                   <StatusBadge status={log.status} />
                 </td>
 
-                {/* Credits */}
+                {/* Chi phí */}
                 <td className="px-4 py-4 text-center text-sm text-foreground">
-                  {log.creditsConsumed}
+                  {Number(log.costVnd).toLocaleString('vi-VN')}đ
                 </td>
 
                 {/* Task ID */}
