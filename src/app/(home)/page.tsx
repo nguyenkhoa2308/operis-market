@@ -52,7 +52,7 @@ const jsonLd = [
         name: "Tôi có thể dùng thử trước khi mua không?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Có! Mỗi tài khoản mới đều nhận credit dùng thử miễn phí để bạn có thể test bất kỳ model nào trước khi quyết định. Không cần thẻ tín dụng để bắt đầu.",
+          text: "Có! Mỗi tài khoản mới đều nhận số dư dùng thử miễn phí để bạn có thể test bất kỳ model nào trước khi quyết định. Không cần thẻ tín dụng để bắt đầu.",
         },
       },
       {

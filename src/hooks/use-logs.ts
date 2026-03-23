@@ -11,7 +11,7 @@ export interface LogEntry {
   duration: number;
   input: string;
   status: "success" | "failed" | "processing";
-  creditsConsumed: number;
+  costVnd: number;
   taskId: string;
   hasResult: boolean;
 }
@@ -19,7 +19,8 @@ export interface LogEntry {
 export interface DailyUsage {
   date: string;
   spend: number;
-  credits: number;
+  costVnd: number;
+  requests: number;
 }
 
 export interface UsageStats {
@@ -27,7 +28,7 @@ export interface UsageStats {
   endpointUsage: {
     name: string;
     totalSpend: number;
-    totalCredits: number;
+    totalCostVnd: number;
     daily: DailyUsage[];
   }[];
   keyUsage: {
@@ -36,7 +37,7 @@ export interface UsageStats {
     createdAt: string;
     lastUsed: string;
     totalSpend: number;
-    totalCredits: number;
+    totalCostVnd: number;
     daily: DailyUsage[];
   }[];
 }
@@ -68,6 +69,56 @@ export function useUsage() {
     queryKey: ["logs", "usage"],
     queryFn: async () => {
       const res = await api.get("/logs/usage");
+      return res.data.data;
+    },
+  });
+}
+
+export interface AccountUsage {
+  totalCostVnd: number;
+  totalSpendVnd: number;
+  maxBudgetVnd: number | null;
+  totalRequests: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
+  dailyUsage: { date: string; costVnd: number; requests: number }[];
+  modelUsage: { model: string; costVnd: number; requests: number; promptTokens: number; completionTokens: number }[];
+}
+
+export interface KeyUsageItem {
+  keyAlias: string | null;
+  keyHash: string | null;
+  keyPrefix: string | null;
+  spend: number;
+  maxBudget: number | null;
+  budgetDuration: string | null;
+  budgetResetAt: string | null;
+  tpmLimit: number | null;
+  rpmLimit: number | null;
+  createdAt: string | null;
+  expiresAt: string | null;
+  lastActive: string | null;
+  models: string[];
+}
+
+export function useAccountUsage(startDate?: string, endDate?: string) {
+  return useQuery<AccountUsage>({
+    queryKey: ["logs", "account-usage", startDate, endDate],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      const res = await api.get("/logs/usage/account", { params });
+      return res.data.data;
+    },
+  });
+}
+
+export function useKeyUsage() {
+  return useQuery<KeyUsageItem[]>({
+    queryKey: ["logs", "key-usage"],
+    queryFn: async () => {
+      const res = await api.get("/logs/usage/keys");
       return res.data.data;
     },
   });

@@ -1,19 +1,17 @@
 export type PricingCategory = "chat" | "video" | "image" | "music";
 
-export interface PricingTier {
-  name: string;
-  category: PricingCategory;
-  provider: string;
-  credits: number;
-  creditUnit: string;
-  ourPrice: number;
-  marketPrice: number | null;
-}
+export const USD_TO_VND = 26000;
 
-export interface PricingGroup {
+export interface PricingModel {
   id: string;
   model: string;
-  tiers: PricingTier[];
+  category: PricingCategory;
+  provider: string;
+  unit: string;
+  inputPrice: number;
+  outputPrice: number;
+  inputOfficial: number | null;
+  outputOfficial: number | null;
 }
 
 export const pricingCategoryTabs: { id: "all" | PricingCategory; label: string }[] = [
@@ -24,80 +22,50 @@ export const pricingCategoryTabs: { id: "all" | PricingCategory; label: string }
   { id: "music", label: "Music" },
 ];
 
-export const pricingGroups: PricingGroup[] = [
-  {
-    id: "gpt-4o",
-    model: "GPT-4o",
-    tiers: [
-      { name: "GPT-4o Input", category: "chat", provider: "OpenAI", credits: 1000, creditUnit: "1K tokens", ourPrice: 2.0, marketPrice: 2.5 },
-      { name: "GPT-4o Output", category: "chat", provider: "OpenAI", credits: 1000, creditUnit: "1K tokens", ourPrice: 6.0, marketPrice: 7.5 },
-    ],
-  },
-  {
-    id: "claude-3-5-sonnet",
-    model: "Claude 3.5 Sonnet",
-    tiers: [
-      { name: "Claude Sonnet Input", category: "chat", provider: "Anthropic", credits: 1000, creditUnit: "1K tokens", ourPrice: 3.0, marketPrice: 3.0 },
-      { name: "Claude Sonnet Output", category: "chat", provider: "Anthropic", credits: 1000, creditUnit: "1K tokens", ourPrice: 15.0, marketPrice: 15.0 },
-    ],
-  },
-  {
-    id: "gemini-2-flash",
-    model: "Gemini 2.0 Flash",
-    tiers: [
-      { name: "Gemini Flash Input", category: "chat", provider: "Google", credits: 1000, creditUnit: "1K tokens", ourPrice: 0.075, marketPrice: 0.1 },
-      { name: "Gemini Flash Output", category: "chat", provider: "Google", credits: 1000, creditUnit: "1K tokens", ourPrice: 0.3, marketPrice: 0.4 },
-    ],
-  },
-  {
-    id: "llama-3-1-405b",
-    model: "Llama 3.1 405B",
-    tiers: [
-      { name: "Llama 405B Input", category: "chat", provider: "Meta", credits: 1000, creditUnit: "1K tokens", ourPrice: 2.0, marketPrice: 3.0 },
-      { name: "Llama 405B Output", category: "chat", provider: "Meta", credits: 1000, creditUnit: "1K tokens", ourPrice: 6.0, marketPrice: 8.0 },
-    ],
-  },
-  {
-    id: "dall-e-3",
-    model: "DALL-E 3",
-    tiers: [
-      { name: "DALL-E 3 Standard", category: "image", provider: "OpenAI", credits: 1, creditUnit: "image", ourPrice: 8.0, marketPrice: 10.0 },
-      { name: "DALL-E 3 HD", category: "image", provider: "OpenAI", credits: 1, creditUnit: "image", ourPrice: 12.0, marketPrice: 15.0 },
-    ],
-  },
-  {
-    id: "stable-diffusion-xl",
-    model: "Stable Diffusion XL",
-    tiers: [
-      { name: "SDXL Standard", category: "image", provider: "Stability AI", credits: 1, creditUnit: "image", ourPrice: 4.0, marketPrice: 6.0 },
-    ],
-  },
-  {
-    id: "midjourney-v6",
-    model: "Midjourney v6",
-    tiers: [
-      { name: "Midjourney v6", category: "image", provider: "Midjourney", credits: 1, creditUnit: "image", ourPrice: 12.0, marketPrice: 15.0 },
-    ],
-  },
-  {
-    id: "runway-gen3-alpha",
-    model: "Runway Gen-3 Alpha",
-    tiers: [
-      { name: "Runway Gen-3 5s", category: "video", provider: "Runway", credits: 1, creditUnit: "5s clip", ourPrice: 50.0, marketPrice: 65.0 },
-    ],
-  },
-  {
-    id: "sora",
-    model: "Sora",
-    tiers: [
-      { name: "Sora 10s", category: "video", provider: "OpenAI", credits: 1, creditUnit: "10s clip", ourPrice: 100.0, marketPrice: 120.0 },
-    ],
-  },
-  {
-    id: "suno-v3-5",
-    model: "Suno v3.5",
-    tiers: [
-      { name: "Suno Song", category: "music", provider: "Suno", credits: 1, creditUnit: "song", ourPrice: 20.0, marketPrice: 25.0 },
-    ],
-  },
+export const pricingModels: PricingModel[] = [
+  // ── Moonshot ──
+  { id: "kimi-k2.5", model: "Kimi K2.5", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 0.48, outputPrice: 2.40, inputOfficial: 0.60, outputOfficial: 3.00 },
+  { id: "kimi-k2-thinking", model: "Kimi K2 Thinking", category: "chat", provider: "Moonshot", unit: "1M tokens", inputPrice: 0.376, outputPrice: 1.60, inputOfficial: 0.47, outputOfficial: 2.00 },
+  // ── OpenAI ──
+  { id: "gpt-oss-120b", model: "GPT OSS 120B", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 0.031, outputPrice: 0.08, inputOfficial: 0.039, outputOfficial: 0.10 },
+  // ── ByteDance ──
+  { id: "bytedance-seed-code", model: "ByteDance Seed Code", category: "chat", provider: "ByteDance", unit: "1M tokens", inputPrice: 0.136, outputPrice: 0.88, inputOfficial: 0.17, outputOfficial: 1.10 },
+  // ── Zhipu ──
+  { id: "glm-4.7", model: "GLM-4.7", category: "chat", provider: "Zhipu", unit: "1M tokens", inputPrice: 0.48, outputPrice: 1.76, inputOfficial: 0.60, outputOfficial: 2.20 },
+  // ── DeepSeek ──
+  { id: "deepseek-v3.2", model: "DeepSeek V3.2", category: "chat", provider: "DeepSeek", unit: "1M tokens", inputPrice: 0.224, outputPrice: 0.336, inputOfficial: 0.28, outputOfficial: 0.42 },
+  // ── Google ──
+  { id: "gemini-2.5-flash", model: "Gemini 2.5 Flash", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.108, outputPrice: 0.90, inputOfficial: 0.30, outputOfficial: 2.50 },
+  { id: "gemini-2.5-pro", model: "Gemini 2.5 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.456, outputPrice: 3.60, inputOfficial: 1.25, outputOfficial: 10.00 },
+  { id: "gemini-3-flash", model: "Gemini 3 Flash", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.18, outputPrice: 1.08, inputOfficial: 0.50, outputOfficial: 3.00 },
+  { id: "gemini-3-pro", model: "Gemini 3 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
+  { id: "gemini-3.1-pro", model: "Gemini 3.1 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
+  // ── Anthropic ──
+  { id: "claude-sonnet-4-5", model: "Claude Sonnet 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 1.20, outputPrice: 3.60, inputOfficial: 3.00, outputOfficial: 15.00 },
+  { id: "claude-opus-4-5", model: "Claude Opus 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 3.60, outputPrice: 6.00, inputOfficial: 5.00, outputOfficial: 25.00 },
+  // ── OpenAI ──
+  { id: "gpt-5-4", model: "GPT-5.4", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 0.528, outputPrice: 4.20, inputOfficial: 2.50, outputOfficial: 10.00 },
+  { id: "openai-codex", model: "OpenAI Codex", category: "chat", provider: "OpenAI", unit: "1M tokens", inputPrice: 3, outputPrice: 6, inputOfficial: 6, outputOfficial: 12 },
+  // ── Google — Image ──
+  { id: "nano-banana-2-4k", model: "Nano Banana 2, 4K", category: "image", provider: "Google", unit: "image", inputPrice: 0.09, outputPrice: 0, inputOfficial: 0.16, outputOfficial: null },
+  { id: "nano-banana-2-2k", model: "Nano Banana 2, 2K", category: "image", provider: "Google", unit: "image", inputPrice: 0.06, outputPrice: 0, inputOfficial: 0.12, outputOfficial: null },
+  { id: "nano-banana-2-1k", model: "Nano Banana 2, 1K", category: "image", provider: "Google", unit: "image", inputPrice: 0.04, outputPrice: 0, inputOfficial: 0.08, outputOfficial: null },
+  { id: "nano-banana-pro-half-2k", model: "Nano Banana Pro, 1/2K", category: "image", provider: "Google", unit: "image", inputPrice: 0.09, outputPrice: 0, inputOfficial: 0.15, outputOfficial: null },
+  { id: "nano-banana-pro-4k", model: "Nano Banana Pro, 4K", category: "image", provider: "Google", unit: "image", inputPrice: 0.12, outputPrice: 0, inputOfficial: 0.30, outputOfficial: null },
+  // ── Black Forest Labs — Image ──
+  { id: "flux-2-pro-t2i-2k", model: "Flux-2 Pro, text-to-image, 2K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.035, outputPrice: 0, inputOfficial: 0.045, outputOfficial: null },
+  { id: "flux-2-pro-i2i-2k", model: "Flux-2 Pro, image-to-image, 2K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.035, outputPrice: 0, inputOfficial: 0.06, outputOfficial: null },
+  { id: "flux-2-pro-t2i-1k", model: "Flux-2 Pro, text-to-image, 1K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.025, outputPrice: 0, inputOfficial: 0.03, outputOfficial: null },
+  { id: "flux-2-pro-i2i-1k", model: "Flux-2 Pro, image-to-image, 1K", category: "image", provider: "Black Forest Labs", unit: "image", inputPrice: 0.025, outputPrice: 0, inputOfficial: 0.045, outputOfficial: null },
+  // ── ByteDance — Image ──
+  { id: "seedream-5-lite-i2i", model: "Seedream 5.0 Lite, image-to-image", category: "image", provider: "ByteDance", unit: "image", inputPrice: 0.0275, outputPrice: 0, inputOfficial: 0.035, outputOfficial: null },
+  { id: "seedream-5-lite-t2i", model: "Seedream 5.0 Lite, text-to-image", category: "image", provider: "ByteDance", unit: "image", inputPrice: 0.0275, outputPrice: 0, inputOfficial: 0.035, outputOfficial: null },
+  // ── Grok — Image ──
+  { id: "grok-imagine-i2i", model: "Grok Imagine, image-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
+  { id: "grok-imagine-t2i", model: "Grok Imagine, text-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
+  // ── Midjourney — Image ──
+  { id: "midjourney", model: "Midjourney", category: "image", provider: "Midjourney", unit: "image", inputPrice: 25, outputPrice: 0, inputOfficial: 35, outputOfficial: null },
+  // ── Video ──
+  { id: "seedance-1.5-pro", model: "Seedance 1.5 Pro", category: "video", provider: "ByteDance", unit: "clip", inputPrice: 50, outputPrice: 0, inputOfficial: 65, outputOfficial: null },
+  { id: "sora-2-pro", model: "Sora 2 Pro", category: "video", provider: "OpenAI", unit: "clip", inputPrice: 100, outputPrice: 0, inputOfficial: 120, outputOfficial: null },
 ];
