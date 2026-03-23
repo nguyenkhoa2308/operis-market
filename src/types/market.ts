@@ -81,4 +81,5 @@ export interface SidebarNavItem {
   href: string;
   icon: LucideIcon;
   badge?: string;
+  external?: boolean;
 }

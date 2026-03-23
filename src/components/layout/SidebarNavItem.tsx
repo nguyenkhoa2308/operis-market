@@ -17,20 +17,17 @@ export default function SidebarNavItem({
 }: SidebarNavItemProps) {
   const pathname = usePathname();
   const isActive =
-    pathname === item.href || pathname.startsWith(item.href + "/");
+    !item.external && (pathname === item.href || pathname.startsWith(item.href + "/"));
   const Icon = item.icon;
 
-  return (
-    <Link
-      href={item.href}
-      onClick={onNavigate}
-      className={`flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-200 ${
-        isActive
-          ? "bg-primary/10 text-primary shadow-sm"
-          : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-      }`}
-      title={collapsed ? item.label : undefined}
-    >
+  const cls = `flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-200 ${
+    isActive
+      ? "bg-primary/10 text-primary shadow-sm"
+      : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+  }`;
+
+  const content = (
+    <>
       <Icon className={`size-5 shrink-0 ${isActive ? "text-primary" : ""}`} />
       <span
         className={`truncate whitespace-nowrap transition-[width,opacity] duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
@@ -44,6 +41,32 @@ export default function SidebarNavItem({
           {item.badge}
         </span>
       )}
+    </>
+  );
+
+  if (item.external) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onNavigate}
+        className={cls}
+        title={collapsed ? item.label : undefined}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={cls}
+      title={collapsed ? item.label : undefined}
+    >
+      {content}
     </Link>
   );
 }
