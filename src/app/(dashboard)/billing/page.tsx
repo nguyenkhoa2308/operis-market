@@ -28,7 +28,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   pending: { label: "Chờ xử lý", cls: "bg-amber-500/10 text-amber-500" },
   expired: { label: "Hết hạn", cls: "bg-gray-500/10 text-gray-500" },
   failed: { label: "Thất bại", cls: "bg-destructive/10 text-destructive" },
-  refunded: { label: "Hoàn tiền", cls: "bg-blue-500/10 text-blue-500" },
+  refunded: { label: "Hoàn tiền", cls: "bg-emerald-500/10 text-emerald-500" },
 };
 
 function StatusBadge({ status }: { status: string }) {

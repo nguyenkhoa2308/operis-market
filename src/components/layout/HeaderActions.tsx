@@ -76,6 +76,7 @@ export default function HeaderActions() {
             onClick={() => setOpen(!open)}
             className="cursor-pointer overflow-hidden rounded-full transition-opacity hover:opacity-90 flex items-center"
           >
+            {}
             <Image
               src={avatarSrc}
               alt={user?.name ?? ""}
@@ -90,7 +91,7 @@ export default function HeaderActions() {
             <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-popover p-1 shadow-xl">
               {/* User info */}
               <div className="border-b border-border px-3 py-2.5">
-                <div className="text-sm font-medium">{user?.name}</div>
+                <div className="text-sm font-bold">{user?.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {user?.email}
                 </div>
@@ -105,7 +106,7 @@ export default function HeaderActions() {
                       key={item.label}
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-popover-foreground transition-colors hover:bg-accent"
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-popover-foreground transition-colors hover:bg-accent font-semibold"
                     >
                       <Icon className="size-4 text-muted-foreground" />
                       {item.label}
@@ -122,7 +123,7 @@ export default function HeaderActions() {
                     setOpen(false);
                     logout.mutate();
                   }}
-                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-accent"
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-accent font-semibold"
                 >
                   <LogOut className="size-4" />
                   Đăng xuất
@@ -134,7 +135,7 @@ export default function HeaderActions() {
       ) : (
         <Link
           href="/register"
-          className="hidden items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-sm font-medium text-background transition-opacity hover:opacity-90 lg:inline-flex"
+          className="hidden items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-sm font-bold text-background transition-opacity hover:opacity-90 lg:inline-flex"
         >
           Bắt đầu
           <ArrowRight className="size-3.5" />

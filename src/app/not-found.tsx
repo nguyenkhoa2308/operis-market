@@ -27,9 +27,9 @@ function FloatingAstronaut() {
       {/* Helmet */}
       <circle cx="102" cy="42" r="24" className="fill-muted-foreground/10 stroke-muted-foreground/40" strokeWidth="1.5" />
       {/* Visor */}
-      <ellipse cx="102" cy="42" rx="16" ry="14" className="fill-blue-500/20 stroke-blue-400/50" strokeWidth="1" />
+      <ellipse cx="102" cy="42" rx="16" ry="14" className="fill-emerald-500/20 stroke-emerald-400/50" strokeWidth="1" />
       {/* Visor shine */}
-      <ellipse cx="96" cy="37" rx="4" ry="3" className="fill-blue-300/40" />
+      <ellipse cx="96" cy="37" rx="4" ry="3" className="fill-emerald-500/40" />
 
       {/* Left arm waving */}
       <path
@@ -76,10 +76,10 @@ function FloatingAstronaut() {
       <ellipse cx="132" cy="141" rx="7" ry="5" className="fill-muted-foreground/20 stroke-muted-foreground/40" strokeWidth="1" />
 
       {/* Stars */}
-      <circle cx="20" cy="30" r="1.5" className="fill-blue-400/60 animate-pulse" />
+      <circle cx="20" cy="30" r="1.5" className="fill-emerald-400/60 animate-pulse" />
       <circle cx="175" cy="20" r="1" className="fill-purple-400/60 animate-pulse [animation-delay:500ms]" />
       <circle cx="160" cy="170" r="1.5" className="fill-pink-400/60 animate-pulse [animation-delay:1000ms]" />
-      <circle cx="30" cy="150" r="1" className="fill-blue-300/60 animate-pulse [animation-delay:1500ms]" />
+      <circle cx="30" cy="150" r="1" className="fill-emerald-500/60 animate-pulse [animation-delay:1500ms]" />
       <circle cx="45" cy="90" r="1" className="fill-purple-300/50 animate-pulse [animation-delay:700ms]" />
       <circle cx="170" cy="100" r="1.5" className="fill-pink-300/50 animate-pulse [animation-delay:1200ms]" />
 
@@ -96,7 +96,7 @@ export default function NotFound() {
       <FloatingAstronaut />
 
       {/* Big 404 */}
-      <h1 className="mt-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-[100px] font-black leading-none tracking-tighter text-transparent sm:text-[150px]">
+      <h1 className="mt-2 bg-gradient-to-r from-emerald-500 via-purple-500 to-pink-500 bg-clip-text text-[100px] font-black leading-none tracking-tighter text-transparent sm:text-[150px]">
         404
       </h1>
 
@@ -138,7 +138,7 @@ export default function NotFound() {
 
       {/* Decorative gradient blobs */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-40 -top-40 size-80 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute -left-40 -top-40 size-80 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="absolute -bottom-40 -right-40 size-80 rounded-full bg-purple-500/10 blur-3xl" />
         <div className="absolute left-1/2 top-1/2 size-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500/5 blur-3xl" />
       </div>

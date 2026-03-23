@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Grandstander } from "next/font/google";
+import { Nunito } from "next/font/google";
 import ThemeProvider from "@/providers/ThemeProvider";
 import QueryProvider from "@/lib/query-provider";
 import ScrollToTopOnNavigate from "@/components/shared/ScrollToTopOnNavigate";
@@ -7,8 +7,8 @@ import { Toaster } from "sonner";
 
 import "./globals.css";
 
-const grandstander = Grandstander({
-  variable: "--font-grandstander",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin", "vietnamese"],
 });
 
@@ -52,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className={grandstander.variable}>
+    <html lang="vi" suppressHydrationWarning className={nunito.variable}>
       <body className="antialiased">
         <ThemeProvider>
           <QueryProvider>

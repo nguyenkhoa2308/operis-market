@@ -15,10 +15,10 @@ export default function HeroSection() {
   return (
     <section className="relative flex w-full flex-col items-center justify-center py-10 pt-24">
       {/* Background gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-blue-600/5 via-transparent to-transparent dark:from-blue-600/15" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-emerald-600/5 via-transparent to-transparent dark:from-emerald-600/15" />
 
       {/* Gradient blob — top left */}
-      <div className="pointer-events-none absolute -left-40 -top-40 size-[500px] rounded-full bg-blue-400/10 blur-3xl dark:bg-blue-500/15" />
+      <div className="pointer-events-none absolute -left-40 -top-40 size-[500px] rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-500/15" />
 
       {/* Gradient blob — top right */}
       <div className="pointer-events-none absolute -right-32 -top-20 size-[400px] rounded-full bg-purple-400/10 blur-3xl dark:bg-purple-500/10" />
@@ -40,7 +40,7 @@ export default function HeroSection() {
       <div className="relative z-[1] mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6">
           <FadeIn delay={0} duration={700}>
-            <h1 className="mx-auto bg-gradient-to-br from-blue-500 to-blue-700 bg-clip-text pt-4 text-center text-3xl font-semibold !leading-[130%] tracking-tight text-transparent dark:from-foreground dark:to-foreground-muted sm:text-4xl md:text-5xl lg:max-w-5xl lg:text-6xl">
+            <h1 className="mx-auto bg-gradient-to-br from-emerald-500 to-emerald-700 bg-clip-text pt-4 text-center text-3xl font-[800] !leading-[130%] tracking-tight text-transparent dark:from-emerald-300 dark:to-emerald-500 sm:text-4xl md:text-5xl lg:max-w-5xl lg:text-6xl">
               Truy cập các Model AI Video, Ảnh & Nhạc hàng đầu trong một API
             </h1>
           </FadeIn>
@@ -56,7 +56,7 @@ export default function HeroSection() {
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:gap-4 md:flex-row">
               <Link
                 href="/market"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90 sm:h-14 sm:px-6"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-sm font-bold text-background transition-opacity hover:opacity-90 sm:h-14 sm:px-6"
               >
                 Khám phá AI API
               </Link>

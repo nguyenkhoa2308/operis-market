@@ -52,7 +52,7 @@ export default function UseCasesSection() {
       />
 
       {/* Gradient blob — right */}
-      <div className="pointer-events-none absolute -right-40 top-1/4 size-[500px] rounded-full bg-blue-400/5 blur-3xl dark:bg-blue-500/10" />
+      <div className="pointer-events-none absolute -right-40 top-1/4 size-[500px] rounded-full bg-emerald-400/5 blur-3xl dark:bg-emerald-500/10" />
 
       {/* Gradient blob — left */}
       <div className="pointer-events-none absolute -left-32 top-2/3 size-[400px] rounded-full bg-indigo-400/5 blur-3xl dark:bg-indigo-500/8" />

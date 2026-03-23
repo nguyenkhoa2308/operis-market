@@ -35,7 +35,16 @@ type Tab = "playground" | "examples" | "readme" | "api";
 
 /* ─── Chat Playground (for chat models) ─── */
 function ChatPlaygroundTab({ slug }: { slug: string }) {
-  const { messages, isStreaming, currentResponse, tokenUsage, error, send, stop, clearMessages } = usePlayground();
+  const {
+    messages,
+    isStreaming,
+    currentResponse,
+    tokenUsage,
+    error,
+    send,
+    stop,
+    clearMessages,
+  } = usePlayground();
   const [input, setInput] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +57,13 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
 
   const handleSend = () => {
     if (!input.trim() || isStreaming) return;
-    send(input, { model: slug, systemPrompt: "", temperature: 1, maxTokens: 1024, topP: 1 });
+    send(input, {
+      model: slug,
+      systemPrompt: "",
+      temperature: 1,
+      maxTokens: 1024,
+      topP: 1,
+    });
     setInput("");
   };
 
@@ -62,12 +77,17 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
           </div>
         )}
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
-              msg.role === "user"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground"
-            }`}>
+          <div
+            key={i}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                msg.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground"
+              }`}
+            >
               {msg.content}
             </div>
           </div>
@@ -83,8 +103,12 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
         {isStreaming && !currentResponse && (
           <div className="flex justify-start">
             <div className="rounded-2xl px-4 py-3 bg-muted flex gap-1">
-              {[0, 1, 2].map(i => (
-                <span key={i} className="size-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="size-1.5 rounded-full bg-muted-foreground animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
               ))}
             </div>
           </div>
@@ -104,21 +128,43 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
 
       {/* Input */}
       <div className="border-t border-border p-3 flex gap-2">
-        <button type="button" onClick={clearMessages} title="Clear" className="cursor-pointer text-xs text-muted-foreground hover:text-foreground px-2">
+        <button
+          type="button"
+          onClick={clearMessages}
+          title="Clear"
+          className="cursor-pointer text-xs text-muted-foreground hover:text-foreground px-2"
+        >
           Xóa
         </button>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="Nhập tin nhắn..."
           rows={1}
           className="flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
         />
         {isStreaming ? (
-          <button type="button" onClick={stop} className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white">Stop</button>
+          <button
+            type="button"
+            onClick={stop}
+            className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white"
+          >
+            Stop
+          </button>
         ) : (
-          <button type="button" title="Send" onClick={handleSend} disabled={!input.trim()} className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground disabled:opacity-50">
+          <button
+            type="button"
+            title="Send"
+            onClick={handleSend}
+            disabled={!input.trim()}
+            className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
             <Zap className="size-4" />
           </button>
         )}
@@ -238,7 +284,7 @@ function PlaygroundTab({
                 key={m}
                 type="button"
                 onClick={() => setInputMode(m)}
-                className={`cursor-pointer rounded-md px-4 py-1.5 text-xs font-medium transition-colors ${
+                className={`cursor-pointer rounded-md px-4 py-1.5 text-xs font-semibold transition-colors ${
                   inputMode === m
                     ? "bg-foreground text-background"
                     : "text-muted-foreground hover:text-foreground"
@@ -311,7 +357,7 @@ function PlaygroundTab({
                             [field.name]: opt.value,
                           }))
                         }
-                        className={`cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
+                        className={`cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold transition-colors ${
                           (formValues[field.name] ?? field.defaultValue) ===
                           opt.value
                             ? "bg-primary text-primary-foreground"
@@ -380,7 +426,7 @@ function PlaygroundTab({
                   setOutputUrl(null);
                   setRunError(null);
                 }}
-                className="cursor-pointer rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                className="cursor-pointer rounded-lg border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
               >
                 Reset
               </button>
@@ -388,7 +434,7 @@ function PlaygroundTab({
                 type="button"
                 onClick={handleRun}
                 disabled={isRunning || !formValues.prompt?.trim()}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
                 {isRunning ? (
                   <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -416,7 +462,7 @@ function PlaygroundTab({
                 key={m}
                 type="button"
                 onClick={() => setOutputMode(m)}
-                className={`cursor-pointer rounded-md px-4 py-1.5 text-xs font-medium transition-colors ${
+                className={`cursor-pointer rounded-md px-4 py-1.5 text-xs font-semibold transition-colors ${
                   outputMode === m
                     ? "bg-foreground text-background"
                     : "text-muted-foreground hover:text-foreground"
@@ -430,7 +476,7 @@ function PlaygroundTab({
 
         <div className="mb-4 flex items-center gap-2 text-xs">
           <span className="text-muted-foreground">output type</span>
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary">
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 font-semibold text-primary">
             {outputType}
           </span>
         </div>
@@ -627,7 +673,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
             >
               <Zap className="size-4 shrink-0" />
               <div>
-                <p className="text-sm font-medium">{endpoint.name}</p>
+                <p className="text-sm font-semibold">{endpoint.name}</p>
                 <p
                   className={`text-[11px] ${activeEndpoint === i ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                 >
@@ -643,7 +689,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
           >
             <Info className="size-4 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium text-primary">Get Started</p>
+              <p className="text-sm font-semibold text-primary">Get Started</p>
               <p className="text-[11px] text-muted-foreground">
                 Things You Should Know
               </p>
@@ -670,7 +716,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
           </p>
           <Link
             href="/api-keys"
-            className="inline-flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-muted"
+            className="inline-flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-muted"
           >
             <Key className="size-3.5" />
             API Key Management
@@ -691,7 +737,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
         <div className="mb-8 text-center">
           <div className="mb-4 flex items-center justify-center gap-3">
             <span
-              className={`rounded-lg px-3 py-1 text-xs font-bold text-white ${ep.method === "POST" ? "bg-green-600" : "bg-blue-600"}`}
+              className={`rounded-lg px-3 py-1 text-xs font-bold text-white ${ep.method === "POST" ? "bg-emerald-600" : "bg-emerald-600"}`}
             >
               {ep.method}
             </span>
@@ -704,7 +750,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
                 className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
               >
                 {copied ? (
-                  <Check className="size-3.5 text-green-400" />
+                  <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                 ) : (
                   <Copy className="size-3.5" />
                 )}
@@ -820,7 +866,9 @@ export default function ModelDetailClient({
   useEffect(() => {
     if (isApiTab || !model) return;
     let hasScrolled = false;
-    const onScroll = () => { hasScrolled = true; };
+    const onScroll = () => {
+      hasScrolled = true;
+    };
     window.addEventListener("scroll", onScroll, { once: true });
 
     const observer = new IntersectionObserver(
@@ -898,13 +946,13 @@ export default function ModelDetailClient({
                     className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {copied ? (
-                      <Check className="size-4 text-green-400" />
+                      <Check className="size-4 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <Copy className="size-4" />
                     )}
                   </button>
                 </div>
-                <span className="mt-1 inline-block rounded-full border border-green-500/30 bg-green-500/10 px-3 py-0.5 text-xs font-medium text-green-400">
+                <span className="mt-1 inline-block rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   Commercial use
                 </span>
               </div>
@@ -929,14 +977,14 @@ export default function ModelDetailClient({
           <div className="flex shrink-0 flex-col gap-3">
             <Link
               href="/api-keys"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Zap className="size-4" />
               Run with API
             </Link>
             <button
               type="button"
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
             >
               <Copy className="size-4" />
               Copy page
@@ -957,7 +1005,7 @@ export default function ModelDetailClient({
               type="button"
               title={tab.label}
               onClick={() => handleTabClick(tab.id)}
-              className={`inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors sm:px-6 sm:py-3.5 sm:text-base ${
+              className={`inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition-colors sm:px-6 sm:py-3.5 sm:text-base ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"

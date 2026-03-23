@@ -8,19 +8,19 @@ export default function CTASection() {
     <section className="w-full py-10 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn duration={800} distance={32}>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 px-6 py-16 text-center sm:px-12 lg:py-24">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 px-6 py-16 text-center sm:px-12 lg:py-24">
             <div className="relative z-[1]">
               <h2 className="mx-auto max-w-2xl text-2xl font-semibold text-white md:text-4xl">
                 Sẵn sàng xây dựng với các Model AI hàng đầu?
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base text-blue-100 md:text-lg">
+              <p className="mx-auto mt-4 max-w-xl text-base text-emerald-100 md:text-lg">
                 Bắt đầu tích hợp tạo video, ảnh và nhạc vào ứng dụng của bạn
                 ngay hôm nay. Bao gồm credit dùng thử miễn phí.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/register"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-blue-700 transition-opacity hover:opacity-90"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-emerald-700 transition-opacity hover:opacity-90"
                 >
                   Bắt đầu miễn phí
                   <ArrowRight className="size-4" />
