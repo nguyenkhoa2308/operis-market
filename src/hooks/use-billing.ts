@@ -83,6 +83,20 @@ export function useCreateSepayOrder() {
   });
 }
 
+export function useCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (transactionId: string) => {
+      const res = await api.delete(`/billing/sepay/cancel/${transactionId}`);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["billing", "sepay", "pending"] });
+      qc.invalidateQueries({ queryKey: ["billing", "transactions"] });
+    },
+  });
+}
+
 export function useSepayStatus(id: string | null) {
   const qc = useQueryClient();
   return useQuery<SepayOrder>({

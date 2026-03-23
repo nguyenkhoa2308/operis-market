@@ -512,6 +512,25 @@ function EditKeyModal({
   );
 }
 
+/* ─── Copy Key Button ─── */
+function CopyKeyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      className="shrink-0 cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+      title="Copy key"
+    >
+      {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+    </button>
+  );
+}
+
 /* ─── Helpers ─── */
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -666,10 +685,11 @@ export default function ApiKeysPage() {
                 </div>
 
                 {/* Key */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
                     {apiKey.keyPrefix}••••••••••••••••••••••••
                   </code>
+                  <CopyKeyButton text={apiKey.keyPrefix} />
                 </div>
 
                 {/* Meta row */}
@@ -743,9 +763,12 @@ export default function ApiKeysPage() {
 
                     {/* Key */}
                     <td className="px-5 py-4">
-                      <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
-                        {apiKey.keyPrefix}••••••••••••••••••••••••
-                      </code>
+                      <div className="flex items-center gap-1.5">
+                        <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
+                          {apiKey.keyPrefix}••••••••••••••••••••••••
+                        </code>
+                        <CopyKeyButton text={apiKey.keyPrefix} />
+                      </div>
                     </td>
 
                     {/* Created Date */}
