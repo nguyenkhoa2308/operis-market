@@ -15,12 +15,12 @@ const categoryColors: Record<
   { text: string; activeBg: string; activeBorder: string }
 > = {
   "video-generation": {
-    text: "text-blue-400",
-    activeBg: "bg-blue-500 text-white border-blue-500",
-    activeBorder: "border-blue-500/40",
+    text: "text-emerald-600 dark:text-emerald-400",
+    activeBg: "bg-emerald-500 text-white border-emerald-500",
+    activeBorder: "border-emerald-500/40",
   },
   "image-generation": {
-    text: "text-emerald-400",
+    text: "text-emerald-600 dark:text-emerald-400",
     activeBg: "bg-emerald-500 text-white border-emerald-500",
     activeBorder: "border-emerald-500/40",
   },

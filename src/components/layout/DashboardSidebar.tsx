@@ -22,7 +22,10 @@ interface DashboardSidebarProps {
   setMobileOpen: (open: boolean) => void;
 }
 
-export default function DashboardSidebar({ mobileOpen, setMobileOpen }: DashboardSidebarProps) {
+export default function DashboardSidebar({
+  mobileOpen,
+  setMobileOpen,
+}: DashboardSidebarProps) {
   const { data: user, isSuccess: isLoggedIn } = useUser();
   const logout = useLogout();
   const [collapsed, setCollapsed] = useState(false);
@@ -41,7 +44,9 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
   useEffect(() => {
     if (mobileOpen) document.documentElement.style.overflow = "hidden";
     else document.documentElement.style.overflow = "";
-    return () => { document.documentElement.style.overflow = ""; };
+    return () => {
+      document.documentElement.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   const sidebarContent = (onNavigate?: () => void) => (
@@ -50,7 +55,7 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
       <div className="flex items-center justify-between px-5 py-5">
         <Link
           href="/"
-          className={`flex items-center whitespace-nowrap text-xl font-bold text-foreground transition-all duration-300 ${collapsed ? "pointer-events-none w-0 opacity-0" : "w-auto opacity-100"}`}
+          className={`flex items-center whitespace-nowrap text-xl font-bold text-foreground transition-[width,opacity] duration-300 ${collapsed ? "pointer-events-none w-0 opacity-0" : "w-auto opacity-100"}`}
         >
           <Image
             src="/images/logo.webp"
@@ -59,14 +64,17 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
             height={38}
             className="shrink-0"
           />
-          <span>
-            Operis<span className="text-blue-400">Market</span>
+          <span className="font-[800]">
+            Operis
+            <span className="text-emerald-600 dark:text-emerald-400">
+              Market
+            </span>
           </span>
         </Link>
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden cursor-pointer rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:flex"
+          className="hidden cursor-pointer rounded-lg p-[9px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary lg:flex"
         >
           {collapsed ? (
             <PanelLeftOpen className="size-5" />
@@ -77,12 +85,19 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
       </div>
 
       {/* User profile — only when logged in */}
-      {isLoggedIn && user && <SidebarUserProfile collapsed={collapsed} user={user} />}
+      {isLoggedIn && user && (
+        <SidebarUserProfile collapsed={collapsed} user={user} />
+      )}
 
       {/* Nav items */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {sidebarNavItems.map((item) => (
-          <SidebarNavItem key={item.id} item={item} collapsed={collapsed} onNavigate={onNavigate} />
+          <SidebarNavItem
+            key={item.id}
+            item={item}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
         ))}
       </nav>
 
@@ -91,12 +106,12 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
         <Link
           href="/profile"
           onClick={onNavigate}
-          className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           title={collapsed ? "Hồ sơ" : undefined}
         >
           <User className="size-5 shrink-0" />
           <span
-            className={`whitespace-nowrap transition-all duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
+            className={`whitespace-nowrap transition-[width,opacity] duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
           >
             Hồ sơ
           </span>
@@ -104,12 +119,12 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
         <Link
           href="/settings"
           onClick={onNavigate}
-          className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           title={collapsed ? "Cài đặt" : undefined}
         >
           <Settings className="size-5 shrink-0" />
           <span
-            className={`whitespace-nowrap transition-all duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
+            className={`whitespace-nowrap transition-[width,opacity] duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
           >
             Cài đặt
           </span>
@@ -119,13 +134,16 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
         {isLoggedIn ? (
           <button
             type="button"
-            onClick={() => { onNavigate?.(); logout.mutate(); }}
-            className="flex w-full cursor-pointer items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+            onClick={() => {
+              onNavigate?.();
+              logout.mutate();
+            }}
+            className="flex w-full cursor-pointer items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
             title={collapsed ? "Đăng xuất" : undefined}
           >
             <LogOut className="size-5 shrink-0" />
             <span
-              className={`whitespace-nowrap transition-all duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
+              className={`whitespace-nowrap transition-[width,opacity] duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
             >
               Đăng xuất
             </span>
@@ -134,12 +152,12 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
           <Link
             href="/login"
             onClick={onNavigate}
-            className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
             title={collapsed ? "Đăng nhập" : undefined}
           >
             <LogIn className="size-5 shrink-0" />
             <span
-              className={`whitespace-nowrap transition-all duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
+              className={`whitespace-nowrap transition-[width,opacity] duration-300 ${collapsed ? "w-0 overflow-hidden opacity-0" : "w-auto opacity-100"}`}
             >
               Đăng nhập
             </span>
@@ -158,7 +176,9 @@ export default function DashboardSidebar({ mobileOpen, setMobileOpen }: Dashboar
             className={`absolute inset-0 bg-black/60 transition-opacity duration-250 ${closing ? "opacity-0" : "animate-in fade-in duration-300"}`}
             onClick={closeMobile}
           />
-          <aside className={`relative h-full w-[280px] border-r border-border bg-background-secondary transition-transform duration-250 ${closing ? "-translate-x-full" : "animate-in slide-in-from-left duration-300"}`}>
+          <aside
+            className={`relative h-full w-[280px] border-r border-border bg-background-secondary transition-transform duration-250 ${closing ? "-translate-x-full" : "animate-in slide-in-from-left duration-300"}`}
+          >
             <button
               type="button"
               onClick={closeMobile}

@@ -55,7 +55,7 @@ export default function FAQSection() {
       />
 
       {/* Gradient blob — bottom left glow */}
-      <div className="pointer-events-none absolute -bottom-20 -left-20 size-[350px] rounded-full bg-blue-500/5 blur-3xl dark:bg-blue-500/10" />
+      <div className="pointer-events-none absolute -bottom-20 -left-20 size-[350px] rounded-full bg-emerald-500/5 blur-3xl dark:bg-emerald-500/10" />
 
       <div className="relative z-[1] mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
@@ -69,12 +69,10 @@ export default function FAQSection() {
             <FadeIn key={index} delay={index * 80}>
               <button
                 type="button"
-                onClick={() =>
-                  setOpenIndex(openIndex === index ? null : index)
-                }
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="flex w-full items-center justify-between gap-4 py-5 text-left cursor-pointer"
               >
-                <span className="text-base font-medium md:text-lg">
+                <span className="text-sm font-bold md:text-lg">
                   {faq.question}
                 </span>
                 <ChevronDown

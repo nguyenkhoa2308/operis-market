@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Lock, Eye, EyeOff, KeyRound, Loader2 } from "lucide-react";
+import { AxiosError } from "axios";
 import { useResetPassword } from "@/hooks/use-auth";
 
 export default function ResetPasswordPage() {
@@ -91,7 +92,7 @@ function ResetPasswordForm() {
             href="/"
             className="mb-8 block text-2xl font-bold text-foreground"
           >
-            Operis <span className="text-blue-400">Market</span>
+            Operis <span className="text-emerald-600 dark:text-emerald-400">Market</span>
           </Link>
 
           <div className="text-center">
@@ -177,8 +178,9 @@ function ResetPasswordForm() {
               {(validationError || resetPw.isError) && (
                 <p className="text-center text-sm text-red-500">
                   {validationError ||
-                    (resetPw.error as any)?.response?.data?.message ||
-                    "An error occurred. Please try again."}
+                    (resetPw.error instanceof AxiosError
+                      ? resetPw.error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại."
+                      : "Có lỗi xảy ra. Vui lòng thử lại.")}
                 </p>
               )}
 

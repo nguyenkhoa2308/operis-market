@@ -8,8 +8,8 @@ import type { PricingCategory, PricingModel } from "@/data/pricing";
 
 const categoryBadgeColors: Record<PricingCategory, string> = {
   chat: "bg-violet-500/20 text-violet-400 border-violet-500/30",
-  video: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  image: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  video: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+  image: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
   music: "bg-orange-500/20 text-orange-400 border-orange-500/30",
 };
 

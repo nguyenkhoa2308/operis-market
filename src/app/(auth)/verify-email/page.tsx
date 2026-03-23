@@ -4,6 +4,7 @@ import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mail, ArrowLeft, ShieldCheck, Loader2 } from "lucide-react";
+import { AxiosError } from "axios";
 import { useVerifyEmail, useResendVerification } from "@/hooks/use-auth";
 
 const CODE_LENGTH = 6;
@@ -124,7 +125,7 @@ function VerifyEmailForm() {
             href="/"
             className="mb-8 block text-2xl font-bold text-foreground"
           >
-            Operis <span className="text-blue-400">Market</span>
+            Operis <span className="text-emerald-600 dark:text-emerald-400">Market</span>
           </Link>
 
           <div className="text-center">
@@ -174,7 +175,7 @@ function VerifyEmailForm() {
                 {verify.isPending ? <Loader2 className="mx-auto size-4 animate-spin" /> : "Xác minh"}
               </button>
               {verify.isError && (
-                <p className="mt-2 text-center text-sm text-red-500">{(verify.error as any)?.response?.data?.message || "Mã xác minh không hợp lệ"}</p>
+                <p className="mt-2 text-center text-sm text-red-500">{verify.error instanceof AxiosError ? verify.error.response?.data?.message || "Mã xác minh không hợp lệ" : "Mã xác minh không hợp lệ"}</p>
               )}
             </form>
 

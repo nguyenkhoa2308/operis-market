@@ -150,7 +150,7 @@ export default function ParameterPanel({
       <div className="h-px bg-border" />
 
       {/* Info box */}
-      <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3 space-y-1.5 text-xs text-muted-foreground">
+      <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 space-y-1.5 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Lưu ý</p>
         <p>Credit sẽ bị trừ sau mỗi lần gọi API dựa trên số token sử dụng.</p>
         <p>Trang Playground chỉ dành để thử nghiệm. Để tích hợp vào sản phẩm, hãy dùng <span className="text-foreground font-medium">API Keys</span>.</p>

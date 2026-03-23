@@ -63,7 +63,7 @@ export default function PopularModelsSection() {
   return (
     <section className="relative w-full overflow-hidden py-10 lg:py-16">
       {/* Gradient blob — center */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/3 blur-3xl dark:bg-blue-500/6" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400/3 blur-3xl dark:bg-emerald-500/6" />
 
       {/* Dot pattern */}
       <div className="bg-grid-dots pointer-events-none absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" />
