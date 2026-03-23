@@ -133,7 +133,7 @@ export default function BillingPage() {
   const hasPending = !!pendingOrder;
 
   const numAmount = Number(amount) || 0;
-  const isValidAmount = numAmount >= 1000;
+  const isValidAmount = numAmount >= 50000;
 
   /** Open QR modal for an existing pending order */
   const resumePayment = (order: SepayOrder) => {
@@ -223,7 +223,7 @@ export default function BillingPage() {
             <p className="mb-3 text-sm font-semibold text-foreground">Số tiền (VND)</p>
             <input
               type="number"
-              min={1000}
+              min={50000}
               step={1000}
               placeholder="Nhập số tiền muốn nạp"
               value={amount}
@@ -235,13 +235,13 @@ export default function BillingPage() {
                 {numAmount > 0 ? `≈ ${fmtVND(numAmount)}` : "\u00A0"}
               </span>
               {amount && !isValidAmount && (
-                <span className="text-xs text-destructive">Tối thiểu 1,000đ</span>
+                <span className="text-xs text-destructive">Tối thiểu 50,000đ</span>
               )}
             </div>
 
             {/* Quick amount buttons */}
             <div className="mb-6 grid grid-cols-3 gap-2">
-              {[10000, 20000, 50000, 100000, 200000, 500000].map((v) => (
+              {[50000, 100000, 200000, 500000, 1000000, 2000000].map((v) => (
                 <button
                   key={v}
                   type="button"
