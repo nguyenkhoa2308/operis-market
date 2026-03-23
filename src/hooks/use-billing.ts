@@ -3,12 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
-export interface TopupPackage {
-  id: string;
-  price: number;
-  badge?: string;
-}
-
 export interface Transaction {
   id: string;
   amountVnd: number;
@@ -39,16 +33,6 @@ export function useBalance() {
     queryKey: ["billing", "balance"],
     queryFn: async () => {
       const res = await api.get("/billing/balance");
-      return res.data.data;
-    },
-  });
-}
-
-export function usePackages() {
-  return useQuery<TopupPackage[]>({
-    queryKey: ["billing", "packages"],
-    queryFn: async () => {
-      const res = await api.get("/billing/packages");
       return res.data.data;
     },
   });

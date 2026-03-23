@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import {
   useBalance,
-  usePackages,
   useTransactions,
   useCreateSepayOrder,
   useSepayStatus,
@@ -110,7 +109,7 @@ function useCountdown(expiresAt: string | undefined) {
 }
 
 export default function BillingPage() {
-  const [selectedPackage, setSelectedPackage] = useState<string>("");
+  const [amount, setAmount] = useState("");
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -124,7 +123,6 @@ export default function BillingPage() {
   const updateSettings = useUpdateSettings();
 
   const { data: balanceData, isLoading: balanceLoading } = useBalance();
-  const { data: packages = [], isLoading: packagesLoading } = usePackages();
   const { data: txData } = useTransactions(page, ROWS_PER_PAGE);
   const createOrder = useCreateSepayOrder();
   const { data: pendingOrder, refetch: refetchPending } = usePendingOrder();
@@ -134,11 +132,8 @@ export default function BillingPage() {
   const countdown = useCountdown(activeOrder?.expiresAt);
   const hasPending = !!pendingOrder;
 
-  const defaultPkgId = packages.length > 0
-    ? (packages.find((p) => p.badge?.toLowerCase() === "popular")?.id ?? packages[0].id)
-    : "";
-  const effectiveSelectedPackage = selectedPackage || defaultPkgId;
-  const selectedPkg = packages.find((p) => p.id === effectiveSelectedPackage);
+  const numAmount = Number(amount) || 0;
+  const isValidAmount = numAmount >= 1000;
 
   /** Open QR modal for an existing pending order */
   const resumePayment = (order: SepayOrder) => {
@@ -224,40 +219,42 @@ export default function BillingPage() {
           <div className="rounded-xl border border-border p-6">
             <h2 className="mb-6 text-lg font-bold text-foreground">Nạp tiền</h2>
 
-            {/* Select Package */}
-            <p className="mb-3 text-sm font-semibold text-foreground">Chọn gói nạp</p>
-            <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {packagesLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="animate-pulse rounded-lg border border-border px-3 py-4">
-                      <div className="mb-2 h-7 w-12 rounded bg-muted" />
-                      <div className="h-4 w-20 rounded bg-muted" />
-                    </div>
-                  ))
-                : packages.map((pkg) => {
-                    const isSelected = effectiveSelectedPackage === pkg.id;
-                    return (
-                      <button
-                        key={pkg.id}
-                        type="button"
-                        onClick={() => setSelectedPackage(pkg.id)}
-                        className={`relative cursor-pointer rounded-lg border px-3 py-4 text-left transition-all ${
-                          isSelected
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover:border-muted-foreground/40"
-                        }`}
-                      >
-                        {pkg.badge && (
-                          <span className="absolute -right-1 -top-2 rotate-12 rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                            {pkg.badge}
-                          </span>
-                        )}
-                        <div className={`text-xl font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
-                          {fmtVND(pkg.price)}
-                        </div>
-                      </button>
-                    );
-                  })}
+            {/* Amount input */}
+            <p className="mb-3 text-sm font-semibold text-foreground">Số tiền (VND)</p>
+            <input
+              type="number"
+              min={1000}
+              step={1000}
+              placeholder="Nhập số tiền muốn nạp"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mb-1.5 w-full rounded-lg border border-border bg-transparent px-4 py-3 text-lg font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+            />
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {numAmount > 0 ? `≈ ${fmtVND(numAmount)}` : "\u00A0"}
+              </span>
+              {amount && !isValidAmount && (
+                <span className="text-xs text-destructive">Tối thiểu 1,000đ</span>
+              )}
+            </div>
+
+            {/* Quick amount buttons */}
+            <div className="mb-6 grid grid-cols-3 gap-2">
+              {[10000, 20000, 50000, 100000, 200000, 500000].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setAmount(String(v))}
+                  className={`cursor-pointer rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                    numAmount === v
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-foreground hover:border-muted-foreground/40"
+                  }`}
+                >
+                  {(v / 1000).toLocaleString("vi-VN")}K
+                </button>
+              ))}
             </div>
 
             {/* Payment Method */}
@@ -287,11 +284,11 @@ export default function BillingPage() {
             ) : (
               <button
                 type="button"
-                disabled={!selectedPkg || createOrder.isPending}
+                disabled={!isValidAmount || createOrder.isPending}
                 onClick={() => {
-                  if (!selectedPkg) return;
+                  if (!isValidAmount) return;
                   createOrder.mutate(
-                    { amount: Number(selectedPkg.price) },
+                    { amount: numAmount },
                     {
                       onSuccess: (data) => {
                         setOrderId(data.transactionId);
@@ -306,9 +303,9 @@ export default function BillingPage() {
                 <span>
                   {createOrder.isPending
                     ? "Đang tạo đơn..."
-                    : selectedPkg
-                      ? `Thanh toán ${fmtVND(selectedPkg.price)}`
-                      : "Chọn gói nạp"}
+                    : isValidAmount
+                      ? `Thanh toán ${fmtVND(numAmount)}`
+                      : "Nhập số tiền để thanh toán"}
                 </span>
               </button>
             )}
