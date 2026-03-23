@@ -43,10 +43,11 @@ export interface ModelPricingTier {
   name: string;
   category: string;
   provider: string;
-  credits: number;
-  creditUnit: string;
-  ourPrice: number;
-  marketPrice: number | null;
+  unit: string;
+  inputPrice: number;
+  outputPrice: number | null;
+  inputOfficial: number | null;
+  outputOfficial: number | null;
 }
 
 export interface ModelDetail extends Model {
