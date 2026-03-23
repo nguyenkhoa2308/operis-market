@@ -10,14 +10,15 @@ import {
   AlertTriangle,
   Eye,
   X,
+  XCircle,
 } from "lucide-react";
 import {
   useBalance,
-  usePackages,
   useTransactions,
   useCreateSepayOrder,
   useSepayStatus,
   usePendingOrder,
+  useCancelOrder,
 } from "@/hooks/use-billing";
 import type { SepayOrder, Transaction } from "@/hooks/use-billing";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
@@ -110,7 +111,7 @@ function useCountdown(expiresAt: string | undefined) {
 }
 
 export default function BillingPage() {
-  const [selectedPackage, setSelectedPackage] = useState<string>("");
+  const [amount, setAmount] = useState("");
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -124,21 +125,18 @@ export default function BillingPage() {
   const updateSettings = useUpdateSettings();
 
   const { data: balanceData, isLoading: balanceLoading } = useBalance();
-  const { data: packages = [], isLoading: packagesLoading } = usePackages();
   const { data: txData } = useTransactions(page, ROWS_PER_PAGE);
   const createOrder = useCreateSepayOrder();
   const { data: pendingOrder, refetch: refetchPending } = usePendingOrder();
+  const cancelOrder = useCancelOrder();
   const { data: orderStatus, refetch: refetchStatus } = useSepayStatus(orderId);
 
   const activeOrder = createOrder.data ?? orderStatus ?? detailOrder ?? pendingOrder;
   const countdown = useCountdown(activeOrder?.expiresAt);
   const hasPending = !!pendingOrder;
 
-  const defaultPkgId = packages.length > 0
-    ? (packages.find((p) => p.badge?.toLowerCase() === "popular")?.id ?? packages[0].id)
-    : "";
-  const effectiveSelectedPackage = selectedPackage || defaultPkgId;
-  const selectedPkg = packages.find((p) => p.id === effectiveSelectedPackage);
+  const numAmount = Number(amount) || 0;
+  const isValidAmount = numAmount >= 50000;
 
   /** Open QR modal for an existing pending order */
   const resumePayment = (order: SepayOrder) => {
@@ -224,40 +222,42 @@ export default function BillingPage() {
           <div className="rounded-xl border border-border p-6">
             <h2 className="mb-6 text-lg font-bold text-foreground">Nạp tiền</h2>
 
-            {/* Select Package */}
-            <p className="mb-3 text-sm font-semibold text-foreground">Chọn gói nạp</p>
-            <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {packagesLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="animate-pulse rounded-lg border border-border px-3 py-4">
-                      <div className="mb-2 h-7 w-12 rounded bg-muted" />
-                      <div className="h-4 w-20 rounded bg-muted" />
-                    </div>
-                  ))
-                : packages.map((pkg) => {
-                    const isSelected = effectiveSelectedPackage === pkg.id;
-                    return (
-                      <button
-                        key={pkg.id}
-                        type="button"
-                        onClick={() => setSelectedPackage(pkg.id)}
-                        className={`relative cursor-pointer rounded-lg border px-3 py-4 text-left transition-all ${
-                          isSelected
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover:border-muted-foreground/40"
-                        }`}
-                      >
-                        {pkg.badge && (
-                          <span className="absolute -right-1 -top-2 rotate-12 rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                            {pkg.badge}
-                          </span>
-                        )}
-                        <div className={`text-xl font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
-                          {fmtVND(pkg.price)}
-                        </div>
-                      </button>
-                    );
-                  })}
+            {/* Amount input */}
+            <p className="mb-3 text-sm font-semibold text-foreground">Số tiền (VND)</p>
+            <input
+              type="number"
+              min={50000}
+              step={1000}
+              placeholder="Nhập số tiền muốn nạp"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mb-1.5 w-full rounded-lg border border-border bg-transparent px-4 py-3 text-lg font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+            />
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {numAmount > 0 ? `≈ ${fmtVND(numAmount)}` : "\u00A0"}
+              </span>
+              {amount && !isValidAmount && (
+                <span className="text-xs text-destructive">Tối thiểu 50,000đ</span>
+              )}
+            </div>
+
+            {/* Quick amount buttons */}
+            <div className="mb-6 grid grid-cols-3 gap-2">
+              {[50000, 100000, 200000, 500000, 1000000, 2000000].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setAmount(String(v))}
+                  className={`cursor-pointer rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                    numAmount === v
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-foreground hover:border-muted-foreground/40"
+                  }`}
+                >
+                  {(v / 1000).toLocaleString("vi-VN")}K
+                </button>
+              ))}
             </div>
 
             {/* Payment Method */}
@@ -280,6 +280,15 @@ export default function BillingPage() {
                   <QrCode className="size-4 shrink-0" />
                   <span>Tiếp tục thanh toán — {fmtVND(pendingOrder!.amountVnd)}</span>
                 </button>
+                <button
+                  type="button"
+                  disabled={cancelOrder.isPending}
+                  onClick={() => cancelOrder.mutate(pendingOrder!.transactionId)}
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-destructive/30 py-2.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:rounded-full sm:text-sm"
+                >
+                  <XCircle className="size-4 shrink-0" />
+                  <span>{cancelOrder.isPending ? "Đang huỷ..." : "Huỷ đơn hàng"}</span>
+                </button>
                 <p className="text-center text-xs text-muted-foreground">
                   Bạn đang có đơn chờ thanh toán. Hoàn tất hoặc huỷ đơn cũ để tạo đơn mới.
                 </p>
@@ -287,11 +296,11 @@ export default function BillingPage() {
             ) : (
               <button
                 type="button"
-                disabled={!selectedPkg || createOrder.isPending}
+                disabled={!isValidAmount || createOrder.isPending}
                 onClick={() => {
-                  if (!selectedPkg) return;
+                  if (!isValidAmount) return;
                   createOrder.mutate(
-                    { amount: Number(selectedPkg.price) },
+                    { amount: numAmount },
                     {
                       onSuccess: (data) => {
                         setOrderId(data.transactionId);
@@ -306,9 +315,9 @@ export default function BillingPage() {
                 <span>
                   {createOrder.isPending
                     ? "Đang tạo đơn..."
-                    : selectedPkg
-                      ? `Thanh toán ${fmtVND(selectedPkg.price)}`
-                      : "Chọn gói nạp"}
+                    : isValidAmount
+                      ? `Thanh toán ${fmtVND(numAmount)}`
+                      : "Nhập số tiền để thanh toán"}
                 </span>
               </button>
             )}
@@ -344,14 +353,25 @@ export default function BillingPage() {
                     <Eye className="size-4" />
                   </button>
                   {tx.status === "pending" && (
-                    <button
-                      type="button"
-                      onClick={() => { setOrderId(tx.id); setQrModalOpen(true); }}
-                      className="cursor-pointer rounded-md bg-amber-500/10 p-1.5 text-amber-500 transition-colors hover:bg-amber-500/20"
-                      title="Thanh toán"
-                    >
-                      <QrCode className="size-4" />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setOrderId(tx.id); setQrModalOpen(true); }}
+                        className="cursor-pointer rounded-md bg-amber-500/10 p-1.5 text-amber-500 transition-colors hover:bg-amber-500/20"
+                        title="Thanh toán"
+                      >
+                        <QrCode className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={cancelOrder.isPending}
+                        onClick={() => cancelOrder.mutate(tx.id)}
+                        className="cursor-pointer rounded-md bg-destructive/10 p-1.5 text-destructive transition-colors hover:bg-destructive/20"
+                        title="Huỷ đơn"
+                      >
+                        <XCircle className="size-4" />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -406,17 +426,28 @@ export default function BillingPage() {
                         Xem
                       </button>
                       {tx.status === "pending" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOrderId(tx.id);
-                            setQrModalOpen(true);
-                          }}
-                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20"
-                        >
-                          <QrCode className="size-3.5" />
-                          Thanh toán
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOrderId(tx.id);
+                              setQrModalOpen(true);
+                            }}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20"
+                          >
+                            <QrCode className="size-3.5" />
+                            Thanh toán
+                          </button>
+                          <button
+                            type="button"
+                            disabled={cancelOrder.isPending}
+                            onClick={() => cancelOrder.mutate(tx.id)}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-60"
+                          >
+                            <XCircle className="size-3.5" />
+                            Huỷ
+                          </button>
+                        </>
                       )}
                       {tx.status === "completed" && (
                         <button
@@ -592,6 +623,27 @@ export default function BillingPage() {
                 Kiểm tra giao dịch
               </button>
 
+              {/* Cancel order button */}
+              <button
+                type="button"
+                disabled={cancelOrder.isPending}
+                onClick={() => {
+                  const tid = od?.transactionId;
+                  if (!tid) return;
+                  cancelOrder.mutate(tid, {
+                    onSuccess: () => {
+                      setQrModalOpen(false);
+                      setOrderId(null);
+                      setDetailOrder(null);
+                      createOrder.reset();
+                    },
+                  });
+                }}
+                className="mt-2 w-full cursor-pointer rounded-lg border border-destructive/30 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+              >
+                {cancelOrder.isPending ? "Đang huỷ..." : "Huỷ đơn hàng"}
+              </button>
+
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Số dư sẽ được cộng tự động trong vòng 1-2 phút sau khi thanh toán thành công.
               </p>
@@ -637,18 +689,33 @@ export default function BillingPage() {
             </div>
 
             {detailTx.status === "pending" && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDetailTx(null);
-                  setOrderId(detailTx.id);
-                  setQrModalOpen(true);
-                }}
-                className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
-              >
-                <QrCode className="size-4" />
-                Thanh toán ngay
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetailTx(null);
+                    setOrderId(detailTx.id);
+                    setQrModalOpen(true);
+                  }}
+                  className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
+                >
+                  <QrCode className="size-4" />
+                  Thanh toán ngay
+                </button>
+                <button
+                  type="button"
+                  disabled={cancelOrder.isPending}
+                  onClick={() => {
+                    cancelOrder.mutate(detailTx.id, {
+                      onSuccess: () => setDetailTx(null),
+                    });
+                  }}
+                  className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-destructive/30 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+                >
+                  <XCircle className="size-4" />
+                  {cancelOrder.isPending ? "Đang huỷ..." : "Huỷ đơn hàng"}
+                </button>
+              </>
             )}
 
             <button

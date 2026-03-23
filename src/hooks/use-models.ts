@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Model, ModelDetail, BannerSlide } from "@/types/market";
+import type { Model, ModelDetail, ModelPricingTier, BannerSlide } from "@/types/market";
 
 export function useModels(params: {
   q?: string;
@@ -67,6 +67,37 @@ export function useModelDetail(slug: string, initialData?: ModelDetail) {
     },
     enabled: !!slug,
     initialData,
+  });
+}
+
+interface PricingListModel {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  provider: string;
+  priceCount: number;
+  prices: (ModelPricingTier & { discount: number | null })[];
+}
+
+interface PricingListResponse {
+  models: PricingListModel[];
+  counts: Record<string, number>;
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export function usePricingList(params: {
+  category?: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+} = {}) {
+  return useQuery<PricingListResponse>({
+    queryKey: ["pricing-list", params],
+    queryFn: async () => {
+      const res = await api.get("/models/pricing", { params });
+      return res.data;
+    },
   });
 }
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { pricingModels, pricingCategoryTabs, USD_TO_VND } from "@/data/pricing";
-import type { PricingCategory, PricingModel } from "@/data/pricing";
+import { usePricingList } from "@/hooks/use-models";
+import { USD_TO_VND, pricingCategoryTabs } from "@/data/pricing";
+import type { PricingCategory } from "@/data/pricing";
 
 const categoryBadgeColors: Record<PricingCategory, string> = {
   chat: "bg-violet-500/20 text-violet-400 border-violet-500/30",
@@ -14,6 +15,18 @@ const categoryBadgeColors: Record<PricingCategory, string> = {
 };
 
 const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
+
+interface FlatRow {
+  key: string;
+  model: string;
+  category: PricingCategory;
+  provider: string;
+  unit: string;
+  inputPrice: number;
+  outputPrice: number | null;
+  inputOfficial: number | null;
+  outputOfficial: number | null;
+}
 
 function formatUSD(price: number): string {
   return `$${price}`;
@@ -123,30 +136,56 @@ export default function PricingPage() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: pricingModels.length };
-    for (const m of pricingModels) {
-      counts[m.category] = (counts[m.category] || 0) + 1;
+  const { data, isLoading } = usePricingList({
+    category: activeCategory === "all" ? undefined : activeCategory,
+    q: debouncedSearch || undefined,
+    page,
+    limit: rowsPerPage,
+  });
+
+  const categoryCounts = data?.counts || { all: 0, chat: 0, video: 0, image: 0, music: 0 };
+
+  // Flatten models → rows (1 row per model+tier)
+  const rows: FlatRow[] = useMemo(() => {
+    if (!data?.models) return [];
+    const flat: FlatRow[] = [];
+    for (const model of data.models) {
+      if (model.prices.length === 0) {
+        flat.push({
+          key: model.id,
+          model: model.name,
+          category: model.category as PricingCategory,
+          provider: model.provider,
+          unit: "1M tokens",
+          inputPrice: 0,
+          outputPrice: null,
+          inputOfficial: null,
+          outputOfficial: null,
+        });
+      } else {
+        for (const tier of model.prices) {
+          flat.push({
+            key: `${model.id}-${tier.id}`,
+            model: model.prices.length > 1 ? `${model.name} (${tier.name})` : model.name,
+            category: (tier.category || model.category) as PricingCategory,
+            provider: tier.provider || model.provider,
+            unit: tier.unit,
+            inputPrice: tier.inputPrice,
+            outputPrice: tier.outputPrice,
+            inputOfficial: tier.inputOfficial,
+            outputOfficial: tier.outputOfficial,
+          });
+        }
+      }
     }
-    return counts;
-  }, []);
+    return flat;
+  }, [data]);
 
-  const filtered = useMemo(() => {
-    const q = debouncedSearch.toLowerCase();
-    return pricingModels.filter((m) => {
-      if (activeCategory !== "all" && m.category !== activeCategory) return false;
-      if (q && !m.model.toLowerCase().includes(q) && !m.provider.toLowerCase().includes(q) && !m.category.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [activeCategory, debouncedSearch]);
-
-  const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
-  const safePageNum = Math.min(page, totalPages);
-  const startIdx = (safePageNum - 1) * rowsPerPage;
-  const pageModels = filtered.slice(startIdx, startIdx + rowsPerPage);
-  const displayStart = total === 0 ? 0 : startIdx + 1;
-  const displayEnd = Math.min(startIdx + rowsPerPage, total);
+  const total = data?.pagination?.total || rows.length;
+  const apiTotalPages = data?.pagination?.totalPages || 1;
+  const safePageNum = Math.min(page, apiTotalPages);
+  const displayStart = total === 0 ? 0 : (safePageNum - 1) * rowsPerPage + 1;
+  const displayEnd = Math.min(safePageNum * rowsPerPage, total);
 
   const handleCategoryChange = (cat: "all" | PricingCategory) => {
     setActiveCategory(cat);
@@ -159,21 +198,21 @@ export default function PricingPage() {
 
   const getPageNumbers = () => {
     const pages: (number | "...")[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    if (apiTotalPages <= 7) {
+      for (let i = 1; i <= apiTotalPages; i++) pages.push(i);
     } else {
       pages.push(1);
       if (safePageNum > 3) pages.push("...");
       const s = Math.max(2, safePageNum - 1);
-      const e = Math.min(totalPages - 1, safePageNum + 1);
+      const e = Math.min(apiTotalPages - 1, safePageNum + 1);
       for (let i = s; i <= e; i++) pages.push(i);
-      if (safePageNum < totalPages - 2) pages.push("...");
-      pages.push(totalPages);
+      if (safePageNum < apiTotalPages - 2) pages.push("...");
+      pages.push(apiTotalPages);
     }
     return pages;
   };
 
-  const isChat = (m: PricingModel) => m.category === "chat";
+  const isChat = (m: FlatRow) => m.category === "chat";
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:pt-8">
@@ -224,7 +263,7 @@ export default function PricingPage() {
       </div>
 
       {/* Top pagination */}
-      {totalPages > 1 && (
+      {apiTotalPages > 1 && (
         <div className="mb-4">
           <PaginationBar
             rowsPerPage={rowsPerPage}
@@ -233,168 +272,179 @@ export default function PricingPage() {
             end={displayEnd}
             total={total}
             page={safePageNum}
-            totalPages={totalPages}
+            totalPages={apiTotalPages}
             onPageChange={setPage}
             getPageNumbers={getPageNumbers}
           />
         </div>
       )}
 
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
       {/* Desktop Table */}
-      <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-muted/20">
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (Operis)</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (Operis)</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input Official</th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output Official</th>
-              <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Input)</th>
-              <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Output)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {pageModels.map((m) => {
-              const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
-              const outputDiscount = isChat(m) ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
-              return (
-                <tr key={m.id} className="transition-colors hover:bg-muted/10">
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm font-semibold text-foreground">{m.model}</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category]}`}>
-                          {m.category}
+      {!isLoading && (
+        <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (Operis)</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (Operis)</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input Official</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output Official</th>
+                <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Input)</th>
+                <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Rẻ hơn (Output)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((m) => {
+                const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
+                const outputDiscount = isChat(m) && m.outputPrice ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
+                return (
+                  <tr key={m.key} className="transition-colors hover:bg-muted/10">
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-semibold text-foreground">{m.model}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category] || ""}`}>
+                            {m.category}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">{m.provider}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
+                        <span className="text-xs text-muted-foreground">{formatUSD(m.inputPrice)}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isChat(m) && m.outputPrice ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
+                          <span className="text-xs text-muted-foreground">{formatUSD(m.outputPrice)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {m.inputOfficial !== null ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">{formatUSD(m.inputOfficial)}</span>
+                          <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isChat(m) && m.outputOfficial !== null ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">{formatUSD(m.outputOfficial)}</span>
+                          <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {inputDiscount ? (
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
+                          <ArrowDown className="size-3" />
+                          {inputDiscount}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">{m.provider}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
-                      <span className="text-xs text-muted-foreground">{formatUSD(m.inputPrice)}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {isChat(m) ? (
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)} <span className="text-xs font-normal text-muted-foreground">/ {m.unit}</span></span>
-                        <span className="text-xs text-muted-foreground">{formatUSD(m.outputPrice)}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {m.inputOfficial !== null ? (
-                      <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">{formatUSD(m.inputOfficial)}</span>
-                        <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">N/A</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {isChat(m) && m.outputOfficial !== null ? (
-                      <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">{formatUSD(m.outputOfficial)}</span>
-                        <span className="text-[11px] text-muted-foreground/60">/ {m.unit}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {inputDiscount ? (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
-                        <ArrowDown className="size-3" />
-                        {inputDiscount}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {outputDiscount ? (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
-                        <ArrowDown className="size-3" />
-                        {outputDiscount}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {outputDiscount ? (
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-500">
+                          <ArrowDown className="size-3" />
+                          {outputDiscount}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Mobile Cards */}
-      <div className="space-y-3 md:hidden">
-        {pageModels.map((m) => {
-          const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
-          const outputDiscount = isChat(m) ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
-          return (
-            <div key={m.id} className="overflow-hidden rounded-xl border border-border">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">{m.model}</span>
-                  <span className="text-[11px] text-muted-foreground">{m.provider} · / {m.unit}</span>
-                </div>
-                <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category]}`}>
-                  {m.category}
-                </span>
-              </div>
-              <div className="space-y-2 px-4 py-3">
-                {/* Input */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Input</span>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)}</div>
-                      <div className="text-[10px] text-muted-foreground">{formatUSD(m.inputPrice)}</div>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground">vs {m.inputOfficial !== null ? formatUSD(m.inputOfficial) : "N/A"}</span>
-                    {inputDiscount && (
-                      <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
-                        <ArrowDown className="size-2.5" />
-                        {inputDiscount}
-                      </span>
-                    )}
+      {!isLoading && (
+        <div className="space-y-3 md:hidden">
+          {rows.map((m) => {
+            const inputDiscount = calcDiscount(m.inputPrice, m.inputOfficial);
+            const outputDiscount = isChat(m) && m.outputPrice ? calcDiscount(m.outputPrice, m.outputOfficial) : null;
+            return (
+              <div key={m.key} className="overflow-hidden rounded-xl border border-border">
+                <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">{m.model}</span>
+                    <span className="text-[11px] text-muted-foreground">{m.provider} · / {m.unit}</span>
                   </div>
+                  <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${categoryBadgeColors[m.category] || ""}`}>
+                    {m.category}
+                  </span>
                 </div>
-                {/* Output (chat only) */}
-                {isChat(m) && (
+                <div className="space-y-2 px-4 py-3">
+                  {/* Input */}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Output</span>
+                    <span className="text-xs text-muted-foreground">Input</span>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <div className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)}</div>
-                        <div className="text-[10px] text-muted-foreground">{formatUSD(m.outputPrice)}</div>
+                        <div className="text-sm font-bold text-emerald-500">{formatVND(m.inputPrice)}</div>
+                        <div className="text-[10px] text-muted-foreground">{formatUSD(m.inputPrice)}</div>
                       </div>
-                      <span className="text-[10px] text-muted-foreground">vs {m.outputOfficial !== null ? formatUSD(m.outputOfficial) : "N/A"}</span>
-                      {outputDiscount && (
+                      <span className="text-[10px] text-muted-foreground">vs {m.inputOfficial !== null ? formatUSD(m.inputOfficial) : "N/A"}</span>
+                      {inputDiscount && (
                         <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
                           <ArrowDown className="size-2.5" />
-                          {outputDiscount}
+                          {inputDiscount}
                         </span>
                       )}
                     </div>
                   </div>
-                )}
+                  {/* Output (chat only) */}
+                  {isChat(m) && m.outputPrice && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Output</span>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-emerald-500">{formatVND(m.outputPrice)}</div>
+                          <div className="text-[10px] text-muted-foreground">{formatUSD(m.outputPrice)}</div>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">vs {m.outputOfficial !== null ? formatUSD(m.outputOfficial) : "N/A"}</span>
+                        {outputDiscount && (
+                          <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-500">
+                            <ArrowDown className="size-2.5" />
+                            {outputDiscount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty state */}
-      {pageModels.length === 0 && (
+      {!isLoading && rows.length === 0 && (
         <div className="flex items-center justify-center rounded-xl border border-border py-20">
           <p className="text-sm text-muted-foreground">Không tìm thấy model nào.</p>
         </div>
@@ -409,7 +459,7 @@ export default function PricingPage() {
           end={displayEnd}
           total={total}
           page={safePageNum}
-          totalPages={totalPages}
+          totalPages={apiTotalPages}
           onPageChange={setPage}
           getPageNumbers={getPageNumbers}
         />

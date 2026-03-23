@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import DocsSidebar, { type DocSection } from "@/components/docs/DocsSidebar";
 import CodeBlock from "@/components/docs/CodeBlock";
-import { Key, Zap, BookOpen, MessageSquare, List, AlertCircle, Code2, ImageIcon, DollarSign } from "lucide-react";
+import { Key, Zap, BookOpen, MessageSquare, List, AlertCircle, Code2, ImageIcon, DollarSign, Gauge } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "API Docs — Operis Market",
@@ -29,6 +29,7 @@ const NAV_SECTIONS: DocSection[] = [
     ],
   },
   { id: "models", label: "Danh sách Models" },
+  { id: "rate-limits", label: "Rate Limits" },
   { id: "errors", label: "Lỗi & Giới hạn" },
   { id: "billing", label: "Billing & Usage" },
   { id: "examples", label: "Ví dụ thực tế" },
@@ -866,8 +867,6 @@ data: [DONE]`,
                         { id: "claude-sonnet-4-5", type: "Chat", input: "31,200", output: "93,600" },
                         { id: "openai-codex", type: "Code", input: "78,000", output: "156,000" },
                         { id: "claude-opus-4-5", type: "Chat", input: "93,600", output: "156,000" },
-                        { id: "seedance-1.5-pro", type: "Video \u2014 Coming soon", input: "1,300,000/clip", output: "\u2014" },
-                        { id: "sora-2-pro", type: "Video \u2014 Coming soon", input: "2,600,000/clip", output: "\u2014" },
                       ].map((m) => (
                         <tr key={m.id} className="border-b border-border last:border-0">
                           <td className="px-4 py-3">
@@ -882,6 +881,79 @@ data: [DONE]`,
                   </table>
                 </div>
               </div>
+            </Section>
+
+            {/* ── Rate Limits ── */}
+            <Section id="rate-limits" icon={Gauge} title="Rate Limits">
+              <p className="text-muted-foreground">
+                Mỗi API key có giới hạn sử dụng để đảm bảo chất lượng dịch vụ cho tất cả người dùng.
+              </p>
+
+              <div className="rounded-xl border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-background-secondary">
+                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giới hạn</th>
+                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giá trị</th>
+                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Mô tả</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <tr className="border-b border-border">
+                      <td className="px-4 py-3 font-medium">RPM</td>
+                      <td className="px-4 py-3 font-mono text-sm">60</td>
+                      <td className="px-4 py-3 text-muted-foreground">Số request tối đa mỗi phút</td>
+                    </tr>
+                    <tr className="border-b border-border">
+                      <td className="px-4 py-3 font-medium">TPM</td>
+                      <td className="px-4 py-3 font-mono text-sm">100,000</td>
+                      <td className="px-4 py-3 text-muted-foreground">Số tokens tối đa mỗi phút</td>
+                    </tr>
+                    <tr className="border-b border-border">
+                      <td className="px-4 py-3 font-medium">Đồng thời</td>
+                      <td className="px-4 py-3 font-mono text-sm">10</td>
+                      <td className="px-4 py-3 text-muted-foreground">Số request chạy song song tối đa</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 font-medium">Budget</td>
+                      <td className="px-4 py-3 font-mono text-sm">50,000đ / 30 ngày</td>
+                      <td className="px-4 py-3 text-muted-foreground">Ngân sách tối đa mỗi chu kỳ</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <SubSection id="rate-limits-429" title="Khi vượt giới hạn">
+                <p className="text-muted-foreground">
+                  Khi vượt giới hạn, API trả về HTTP <code className="rounded bg-muted px-1.5 py-0.5 text-sm font-mono">429</code> với các headers:
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">retry-after</code> — số giây cần chờ trước khi gửi lại</li>
+                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">x-ratelimit-remaining-requests</code> — số request còn lại trong chu kỳ</li>
+                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">x-ratelimit-remaining-tokens</code> — số tokens còn lại trong chu kỳ</li>
+                </ul>
+                <CodeBlock
+                  tabs={[{
+                    label: "JSON",
+                    code: `{
+  "error": {
+    "message": "Bạn đã vượt quá giới hạn request. Vui lòng thử lại sau.",
+    "type": "rate_limit_error",
+    "code": 429
+  }
+}`,
+                  }]}
+                />
+              </SubSection>
+
+              <SubSection id="rate-limits-best-practices" title="Best practices">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>Thêm exponential backoff khi gặp lỗi 429</li>
+                  <li>Đọc header <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">retry-after</code> để biết thời gian chờ chính xác</li>
+                  <li>Tránh gửi nhiều request lớn cùng lúc — chia nhỏ và xử lý tuần tự</li>
+                  <li>Cache kết quả khi có thể để giảm số lượng request</li>
+                </ul>
+              </SubSection>
             </Section>
 
             {/* ── Errors ── */}

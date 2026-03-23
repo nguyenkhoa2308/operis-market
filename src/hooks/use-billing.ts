@@ -3,12 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
-export interface TopupPackage {
-  id: string;
-  price: number;
-  badge?: string;
-}
-
 export interface Transaction {
   id: string;
   amountVnd: number;
@@ -39,16 +33,6 @@ export function useBalance() {
     queryKey: ["billing", "balance"],
     queryFn: async () => {
       const res = await api.get("/billing/balance");
-      return res.data.data;
-    },
-  });
-}
-
-export function usePackages() {
-  return useQuery<TopupPackage[]>({
-    queryKey: ["billing", "packages"],
-    queryFn: async () => {
-      const res = await api.get("/billing/packages");
       return res.data.data;
     },
   });
@@ -95,6 +79,20 @@ export function useCreateSepayOrder() {
     mutationFn: async (body: { amount: number }) => {
       const res = await api.post("/billing/sepay/create-order", body);
       return res.data.data as SepayOrder;
+    },
+  });
+}
+
+export function useCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (transactionId: string) => {
+      const res = await api.delete(`/billing/sepay/cancel/${transactionId}`);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["billing", "sepay", "pending"] });
+      qc.invalidateQueries({ queryKey: ["billing", "transactions"] });
     },
   });
 }

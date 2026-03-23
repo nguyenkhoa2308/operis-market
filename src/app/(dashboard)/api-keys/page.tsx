@@ -512,6 +512,25 @@ function EditKeyModal({
   );
 }
 
+/* ─── Copy Key Button ─── */
+function CopyKeyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      className="shrink-0 cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+      title="Copy key"
+    >
+      {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+    </button>
+  );
+}
+
 /* ─── Helpers ─── */
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -593,6 +612,20 @@ export default function ApiKeysPage() {
           </h1>
         </div>
 
+        {/* Rate Limit Info Banner */}
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+          <div className="mb-2 flex items-center gap-2">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Giới hạn mặc định cho mỗi API key</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            <div className="text-muted-foreground">RPM: <strong className="text-foreground">60</strong> req/phút</div>
+            <div className="text-muted-foreground">TPM: <strong className="text-foreground">100K</strong> tokens/phút</div>
+            <div className="text-muted-foreground">Đồng thời: <strong className="text-foreground">10</strong> request</div>
+            <div className="text-muted-foreground">Budget: <strong className="text-foreground">50,000đ</strong>/30 ngày</div>
+          </div>
+        </div>
+
         {/* Card */}
         <div className="rounded-xl border border-border">
           {/* Card header */}
@@ -652,10 +685,11 @@ export default function ApiKeysPage() {
                 </div>
 
                 {/* Key */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
                     {apiKey.keyPrefix}••••••••••••••••••••••••
                   </code>
+                  <CopyKeyButton text={apiKey.keyPrefix} />
                 </div>
 
                 {/* Meta row */}
@@ -729,9 +763,12 @@ export default function ApiKeysPage() {
 
                     {/* Key */}
                     <td className="px-5 py-4">
-                      <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
-                        {apiKey.keyPrefix}••••••••••••••••••••••••
-                      </code>
+                      <div className="flex items-center gap-1.5">
+                        <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
+                          {apiKey.keyPrefix}••••••••••••••••••••••••
+                        </code>
+                        <CopyKeyButton text={apiKey.keyPrefix} />
+                      </div>
                     </td>
 
                     {/* Created Date */}
