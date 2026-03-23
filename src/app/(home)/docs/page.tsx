@@ -494,7 +494,7 @@ export default function DocsPage() {
 
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">POST</span>
+                  <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">POST</span>
                   <code className="text-sm font-mono text-foreground">/api/chat/completions</code>
                 </div>
                 <div className="p-4 overflow-x-auto">
@@ -541,7 +541,7 @@ export default function DocsPage() {
               </p>
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-bold text-blue-400">GET</span>
+                  <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">GET</span>
                   <code className="text-sm font-mono text-foreground">/api/chat/models</code>
                 </div>
                 <div className="p-4 text-sm text-muted-foreground">

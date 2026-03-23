@@ -57,7 +57,7 @@ export default function WhyChooseSection() {
   return (
     <section className="relative w-full overflow-hidden py-16 lg:py-24">
       {/* Gradient blob — bottom left */}
-      <div className="pointer-events-none absolute -bottom-32 -left-32 size-[400px] rounded-full bg-blue-400/5 blur-3xl dark:bg-blue-500/10" />
+      <div className="pointer-events-none absolute -bottom-32 -left-32 size-[400px] rounded-full bg-emerald-400/5 blur-3xl dark:bg-emerald-500/10" />
 
       {/* Gradient blob — top right */}
       <div className="pointer-events-none absolute -right-24 -top-24 size-[350px] rounded-full bg-purple-400/5 blur-3xl dark:bg-purple-500/8" />

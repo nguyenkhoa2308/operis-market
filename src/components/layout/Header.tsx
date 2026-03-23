@@ -93,8 +93,11 @@ export default function Header() {
             height={42}
             className="size-8 sm:size-[42px]"
           />
-          <span className="hidden sm:inline">
-            Operis<span className="text-blue-400">Market</span>
+          <span className="hidden sm:inline font-[800]">
+            Operis
+            <span className="text-emerald-600 dark:text-emerald-400">
+              Market
+            </span>
           </span>
         </Link>
 
@@ -102,18 +105,24 @@ export default function Header() {
           <nav className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) =>
               link.children ? (
-                <div key={link.id} className="group relative" onMouseLeave={() => setHiddenDropdown(null)}>
+                <div
+                  key={link.id}
+                  className="group relative"
+                  onMouseLeave={() => setHiddenDropdown(null)}
+                >
                   <button
                     type="button"
                     aria-haspopup="true"
-                    className="flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-[15px] font-medium text-foreground-muted transition-colors hover:bg-accent hover:text-foreground"
+                    className="flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-[15px] font-bold text-foreground-muted transition-colors hover:bg-accent hover:text-foreground"
                   >
                     {link.label}
                     <ChevronDown className="size-3.5 transition-transform duration-200 group-hover:rotate-180 group-has-[:focus-visible]:rotate-180" />
                   </button>
 
                   {/* Dropdown */}
-                  <div className={`invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-2 opacity-0 transition-all duration-200 ${hiddenDropdown === link.id ? "" : "group-hover:visible group-hover:opacity-100"} group-has-[:focus-visible]:visible group-has-[:focus-visible]:opacity-100`}>
+                  <div
+                    className={`invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-2 opacity-0 transition-all duration-200 ${hiddenDropdown === link.id ? "" : "group-hover:visible group-hover:opacity-100"} group-has-[:focus-visible]:visible group-has-[:focus-visible]:opacity-100`}
+                  >
                     <div className="rounded-xl border border-border bg-popover p-2 shadow-xl">
                       {link.children.map((child) => {
                         const Icon = child.icon;
@@ -145,7 +154,7 @@ export default function Header() {
                 <Link
                   key={link.id}
                   href={link.href}
-                  className="rounded-lg px-3 py-2 text-[15px] font-medium text-foreground-muted transition-colors hover:bg-accent hover:text-foreground"
+                  className="rounded-lg px-3 py-2 text-[15px] font-bold text-foreground-muted transition-colors hover:bg-accent hover:text-foreground"
                 >
                   {link.label}
                 </Link>

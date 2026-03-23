@@ -35,7 +35,7 @@ export default function CodeBlock({ tabs }: CodeBlockProps) {
               onClick={() => setActiveTab(i)}
               className={`px-4 py-2.5 text-xs font-medium transition-colors ${
                 activeTab === i
-                  ? "border-b-2 border-blue-400 text-blue-400"
+                  ? "border-b-2 border-emerald-400 text-emerald-600 dark:text-emerald-400"
                   : "text-white/50 hover:text-white/80"
               }`}
             >
@@ -50,8 +50,8 @@ export default function CodeBlock({ tabs }: CodeBlockProps) {
         >
           {copied ? (
             <>
-              <Check className="size-3 text-green-400" />
-              <span className="text-green-400">Đã sao chép</span>
+              <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-emerald-600 dark:text-emerald-400">Đã sao chép</span>
             </>
           ) : (
             <>

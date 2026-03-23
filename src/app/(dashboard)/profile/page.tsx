@@ -211,7 +211,7 @@ export default function ProfilePage() {
                 <p className="text-sm text-destructive">{pwError}</p>
               )}
               {pwSuccess && (
-                <p className="text-sm text-green-600 dark:text-green-400">
+                <p className="text-sm text-emerald-600 dark:text-emerald-600 dark:text-emerald-400">
                   {pwSuccess}
                 </p>
               )}

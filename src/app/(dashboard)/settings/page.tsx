@@ -16,6 +16,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { useThemeTransition } from "@/hooks/useThemeTransition";
+import { AxiosError } from "axios";
 import { useUser, useDeleteAccount } from "@/hooks/use-auth";
 
 
@@ -160,7 +161,7 @@ export default function SettingsPage() {
 
                   {deleteAccount.isError && (
                     <p className="text-sm text-red-500">
-                      {(deleteAccount.error as any)?.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại."}
+                      {deleteAccount.error instanceof AxiosError ? deleteAccount.error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại." : "Có lỗi xảy ra. Vui lòng thử lại."}
                     </p>
                   )}
 

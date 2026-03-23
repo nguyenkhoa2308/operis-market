@@ -24,7 +24,7 @@ const DateRangePicker = dynamic(
 /* ─── Status badge ─── */
 function StatusBadge({ status }: { status: LogEntry["status"] }) {
   const config = {
-    success: { dot: "bg-green-400", text: "text-green-400", label: "success" },
+    success: { dot: "bg-emerald-400", text: "text-emerald-600 dark:text-emerald-400", label: "success" },
     failed: { dot: "bg-red-400", text: "text-red-400", label: "failed" },
     processing: { dot: "bg-yellow-400", text: "text-yellow-400", label: "processing" },
   }[status];
@@ -40,7 +40,7 @@ function StatusBadge({ status }: { status: LogEntry["status"] }) {
 /* ─── Model badge ─── */
 function ModelBadge({ model }: { model: string }) {
   return (
-    <span className="inline-block rounded-md border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-400">
+    <span className="inline-block rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
       {model}
     </span>
   );
@@ -147,8 +147,8 @@ export default function LogsPage() {
 
       {/* Retention alert */}
       {showAlert && (
-        <div className="relative mb-6 flex gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
-          <Info className="mt-0.5 size-5 shrink-0 text-blue-400" />
+        <div className="relative mb-6 flex gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <Info className="mt-0.5 size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Chính sách lưu trữ Log</p>
             <p className="mt-0.5 text-sm text-muted-foreground">

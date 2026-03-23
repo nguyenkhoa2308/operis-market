@@ -45,8 +45,11 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <Link href="/" className="text-xl font-bold">
-              Operis <span className="text-blue-400">Market</span>
+            <Link href="/" className="text-xl font-[800]">
+              Operis
+              <span className="text-emerald-600 dark:text-emerald-400">
+                Market
+              </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Truy cập các model AI hàng đầu cho video, ảnh và nhạc thông qua
@@ -64,14 +67,14 @@ export default function Footer() {
                   return (
                     <li key={link.label}>
                       {isExternal ? (
-                        <a
+                        <Link
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {link.label}
-                        </a>
+                        </Link>
                       ) : (
                         <Link
                           href={link.href}
@@ -91,8 +94,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Operis Market. Bảo lưu mọi
-            quyền.
+            &copy; {new Date().getFullYear()} Operis Market. Bảo lưu mọi quyền.
           </p>
           <div className="flex items-center gap-6">
             <Link
