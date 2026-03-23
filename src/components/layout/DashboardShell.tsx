@@ -37,7 +37,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         {children}
       </main>
 
-      <ScrollToTop />
+      <ScrollToTop className="bottom-6 sm:bottom-8" />
     </div>
   );
 }

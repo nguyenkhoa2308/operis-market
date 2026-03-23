@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
@@ -36,6 +36,8 @@ const categoryColors: Record<
   },
 };
 
+const PAGE_SIZE = 12;
+
 export default function MarketContent() {
   const [activeTab, setActiveTab] = useState<FilterTab>("tasks");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
@@ -45,12 +47,18 @@ export default function MarketContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   const { data: modelsData, isLoading: modelsLoading } = useModels({
-    limit: 100,
+    q: debouncedSearch || undefined,
+    tags: selectedTags.size > 0 ? [...selectedTags].join(",") : undefined,
+    provider: selectedProviders.size > 0 ? [...selectedProviders].join(",") : undefined,
+    page,
+    limit: PAGE_SIZE,
   });
   const { data: filtersData } = useFilters();
   const allModels = modelsData?.data ?? [];
+  const pagination = modelsData?.pagination;
   const taskCategories = filtersData?.categories ?? [];
   const providerList = filtersData?.providers ?? [];
 
@@ -61,6 +69,7 @@ export default function MarketContent() {
       else next.add(tagId);
       return next;
     });
+    setPage(1);
   }, []);
 
   const handleProviderToggle = useCallback((provider: string) => {
@@ -70,11 +79,13 @@ export default function MarketContent() {
       else next.add(provider);
       return next;
     });
+    setPage(1);
   }, []);
 
   const handleClearAll = useCallback(() => {
     setSelectedTags(new Set());
     setSelectedProviders(new Set());
+    setPage(1);
   }, []);
 
   const taskCount = taskCategories.reduce(
@@ -84,26 +95,7 @@ export default function MarketContent() {
 
   const hasFilters = selectedTags.size > 0 || selectedProviders.size > 0;
 
-  // Filter models
-  const filteredModels = useMemo(() => {
-    return allModels.filter((model) => {
-      if (selectedTags.size > 0) {
-        if (!model.taskTags.some((tag) => selectedTags.has(tag))) return false;
-      }
-      if (selectedProviders.size > 0) {
-        if (!selectedProviders.has(model.provider)) return false;
-      }
-      if (debouncedSearch) {
-        const q = debouncedSearch.toLowerCase();
-        return (
-          model.name.toLowerCase().includes(q) ||
-          model.provider.toLowerCase().includes(q) ||
-          model.description.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [allModels, selectedTags, selectedProviders, debouncedSearch]);
+  const filteredModels = allModels;
 
   return (
     <div className="flex gap-6">
@@ -219,7 +211,7 @@ export default function MarketContent() {
                 Tất cả Models
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Tìm thấy {filteredModels.length} model
+                Tìm thấy {pagination?.total ?? filteredModels.length} model
               </p>
             </div>
             {/* Filter button — inline on mobile */}
@@ -419,6 +411,53 @@ export default function MarketContent() {
             <p className="mt-1 text-xs text-muted-foreground/70">
               Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm
             </p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Trước
+            </button>
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - page) <= 1)
+              .reduce<(number | "...")[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === "..." ? (
+                  <span key={`dot-${i}`} className="px-1 text-muted-foreground">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      page === p
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+            <button
+              type="button"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Sau
+            </button>
           </div>
         )}
       </div>

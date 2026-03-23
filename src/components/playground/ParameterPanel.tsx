@@ -49,6 +49,7 @@ function Slider({
           style={{
             background: `linear-gradient(to right, hsl(var(--primary)) ${pct}%, hsl(var(--border)) ${pct}%)`,
           }}
+          title="Chọn khoảng"
         />
       </div>
     </div>
@@ -95,6 +96,7 @@ export default function ParameterPanel({
             onChange={(e) => onChange({ model: e.target.value })}
             disabled={modelsLoading}
             className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2.5 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+            title="Chọn model"
           >
             {modelsLoading ? (
               <option value="">Đang tải...</option>
@@ -153,7 +155,10 @@ export default function ParameterPanel({
       <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 space-y-1.5 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Lưu ý</p>
         <p>Credit sẽ bị trừ sau mỗi lần gọi API dựa trên số token sử dụng.</p>
-        <p>Trang Playground chỉ dành để thử nghiệm. Để tích hợp vào sản phẩm, hãy dùng <span className="text-foreground font-medium">API Keys</span>.</p>
+        <p>
+          Trang Playground chỉ dành để thử nghiệm. Để tích hợp vào sản phẩm, hãy
+          dùng <span className="text-foreground font-medium">API Keys</span>.
+        </p>
       </div>
     </aside>
   );
