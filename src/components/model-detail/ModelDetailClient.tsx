@@ -735,7 +735,7 @@ ${exampleBody}`}</code>
 
 /* ─── API Tab ─── */
 function ApiTab({ slug, category }: { slug: string; category: string }) {
-  const { data: docs } = useApiDocs();
+  const { data: docs, isLoading } = useApiDocs();
   const endpoints = getEndpointsForCategory(docs?.endpoints, category);
   const [activeEndpoint, setActiveEndpoint] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -747,6 +747,15 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (isLoading || !ep) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-6 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-muted-foreground">Đang tải API docs...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row">
