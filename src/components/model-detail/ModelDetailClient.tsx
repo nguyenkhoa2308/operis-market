@@ -32,6 +32,7 @@ import {
 } from "@/data/model-detail";
 import { useApiDocs, getEndpointsForCategory, getPrimaryEndpoint } from "@/hooks/use-api-docs";
 import { QUICKSTART_STEPS, SUPPORT_EMAIL } from "@/data/api-docs-content";
+import { USD_TO_VND } from "@/data/pricing-constants";
 import { api } from "@/lib/api";
 
 type Tab = "playground" | "examples" | "readme" | "api";
@@ -251,7 +252,7 @@ function PlaygroundTab({
           ? "audio"
           : "text";
 
-  const USD_TO_VND = 25_000;
+  // Use shared USD_TO_VND from pricing-constants
   const tier = pricingTiers?.[0];
   const priceLabel = tier
     ? `${Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
@@ -642,13 +643,13 @@ function ReadmeTab({
   slug,
   description,
   category,
-  pricing,
+  pricingTiers,
 }: {
   modelName: string;
   slug: string;
   description: string;
   category: string;
-  pricing: string;
+  pricingTiers?: ModelDetail["modelPricingTiers"];
 }) {
   const { data: docs } = useApiDocs();
   const primaryEndpoint = getPrimaryEndpoint(docs?.endpoints, category);
@@ -677,9 +678,44 @@ function ReadmeTab({
             <h3 className="mb-3 text-base font-bold text-foreground">
               💰 Pricing
             </h3>
-            <div className="rounded-lg border border-border bg-muted/20 p-4">
-              <p className="text-sm text-foreground">{pricing}</p>
-            </div>
+            {pricingTiers && pricingTiers.length > 0 ? (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="px-4 py-2 text-left font-semibold text-foreground">Tier</th>
+                      <th className="px-4 py-2 text-right font-semibold text-foreground">Input</th>
+                      {pricingTiers.some((t) => t.outputPrice !== null) && (
+                        <th className="px-4 py-2 text-right font-semibold text-foreground">Output</th>
+                      )}
+                      <th className="px-4 py-2 text-right font-semibold text-foreground">Đơn vị</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pricingTiers.map((tier) => (
+                      <tr key={tier.id} className="border-b border-border last:border-0">
+                        <td className="px-4 py-2 text-foreground">{tier.name}</td>
+                        <td className="px-4 py-2 text-right text-foreground">
+                          {Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ
+                        </td>
+                        {pricingTiers.some((t) => t.outputPrice !== null) && (
+                          <td className="px-4 py-2 text-right text-foreground">
+                            {tier.outputPrice !== null
+                              ? `${Math.round(Number(tier.outputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
+                              : "—"}
+                          </td>
+                        )}
+                        <td className="px-4 py-2 text-right text-muted-foreground">{tier.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border bg-muted/20 p-4">
+                <p className="text-sm text-muted-foreground">Đang tải pricing...</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -1078,8 +1114,10 @@ export default function ModelDetailClient({
             <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
               <span>💰</span>
               <span>
-                Pricing: {model.name} — {model.pricingDisplay ?? model.pricing}.
-                High-tier top-ups (+10% bonus) bring effective pricing down.
+                {model.modelPricingTiers?.[0]
+                  ? `Pricing: ${model.name} — từ ${Math.round(Number(model.modelPricingTiers[0].inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ/${model.modelPricingTiers[0].unit}.`
+                  : `Pricing: ${model.name}`}
+                {" "}Nạp tiền nhiều hơn để được bonus (+10%).
               </span>
             </p>
           </div>
@@ -1181,7 +1219,7 @@ export default function ModelDetailClient({
                 slug={model.slug}
                 description={model.description}
                 category={model.category}
-                pricing={model.pricing}
+                pricingTiers={model.modelPricingTiers}
               />
             </div>
           </>
