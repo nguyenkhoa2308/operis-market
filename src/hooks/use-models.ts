@@ -1,13 +1,49 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Model, ModelDetail, ModelPricingTier, BannerSlide } from "@/types/market";
+
+interface RawFilterOption {
+  id: string;
+  label: string;
+}
+
+interface RawFilterCategory {
+  label: string;
+  filterOptions: RawFilterOption[];
+}
+
+interface RawFiltersResponse {
+  categories: RawFilterCategory[];
+  providers: (string | { name: string })[];
+}
+
+interface FilterOption {
+  id: string;
+  label: string;
+}
+
+interface FilterCategory {
+  id: string;
+  label: string;
+  options: FilterOption[];
+}
+
+interface FiltersData {
+  categories: FilterCategory[];
+  providers: string[];
+}
+
+interface ModelsResponse {
+  data: Model[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}
 
 export function useModels(params: {
   q?: string;
   category?: string;
-  tags?: string;
+  taskTags?: string;
   provider?: string;
   page?: number;
   limit?: number;
@@ -16,11 +52,9 @@ export function useModels(params: {
     queryKey: ["models", params],
     queryFn: async () => {
       const res = await api.get("/models", { params });
-      return res.data as {
-        data: Model[];
-        pagination: { total: number; page: number; limit: number; totalPages: number };
-      };
+      return res.data as ModelsResponse;
     },
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -35,24 +69,26 @@ export function useFeaturedModels() {
 }
 
 export function useFilters() {
-  return useQuery<{ categories: { id: string; label: string; options: { id: string; label: string }[] }[]; providers: string[] }>({
+  return useQuery<FiltersData>({
     queryKey: ["filters"],
     queryFn: async () => {
       const res = await api.get("/filters");
-      const raw = res.data.data;
+      const raw = res.data.data as RawFiltersResponse;
       const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
       return {
         categories: (raw.categories ?? [])
-          .filter((cat: any) => cat.label !== "Provider")
-          .map((cat: any) => ({
+          .filter((cat) => cat.label !== "Provider")
+          .map((cat) => ({
             id: toSlug(cat.label),
             label: cat.label,
-            options: (cat.filterOptions ?? []).map((opt: any) => ({
+            options: (cat.filterOptions ?? []).map((opt) => ({
               id: toSlug(opt.label),
               label: opt.label,
             })),
           })),
-        providers: (raw.providers ?? []).map((p: any) => p.name ?? p),
+        providers: (raw.providers ?? []).map((p) =>
+          typeof p === "string" ? p : p.name,
+        ),
       };
     },
   });
@@ -102,7 +138,7 @@ export function usePricingList(params: {
 }
 
 export function useModelPricing(slug: string) {
-  return useQuery({
+  return useQuery<ModelPricingTier[]>({
     queryKey: ["models", slug, "pricing"],
     queryFn: async () => {
       const res = await api.get(`/models/${slug}/pricing`);

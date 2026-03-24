@@ -14,7 +14,6 @@ const footerLinks = [
     title: "Tài nguyên",
     links: [
       { label: "Tài liệu", href: "/docs" },
-      { label: "Tham chiếu API", href: "/docs/api" },
       { label: "Bảng giá", href: "/pricing" },
       { label: "Cập nhật", href: "/updates" },
     ],

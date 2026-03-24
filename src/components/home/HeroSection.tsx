@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
 import CountUp from "@/components/shared/CountUp";
+import { useUser } from "@/hooks/use-auth";
 
 const stats = [
   { value: "99.9%", label: "Thời gian hoạt động" },
@@ -12,6 +15,8 @@ const stats = [
 ];
 
 export default function HeroSection() {
+  const { data: user } = useUser();
+
   return (
     <section className="relative flex w-full flex-col items-center justify-center py-10 pt-24">
       {/* Background gradient */}
@@ -60,15 +65,15 @@ export default function HeroSection() {
               >
                 Khám phá AI API
               </Link>
-              {/* <Link
-                href="/docs"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border px-5 text-sm font-medium text-foreground-muted transition-colors hover:bg-accent sm:h-14 sm:px-6"
-              >
-                Tài liệu API
-                <span className="flex size-7 items-center justify-center rounded-full bg-muted">
-                  <ArrowRight className="size-4" />
-                </span>
-              </Link> */}
+              {!user && (
+                <Link
+                  href="/register"
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30 sm:h-14 sm:px-6"
+                >
+                  Đăng ký miễn phí
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
             </div>
           </FadeIn>
         </div>

@@ -28,7 +28,7 @@ export default function ModelCard({ model }: ModelCardProps) {
       </div>
 
       {/* Gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
       {/* Badge */}
       {model.isNew && (

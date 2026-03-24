@@ -1,9 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
+import { useUser } from "@/hooks/use-auth";
 
 export default function CTASection() {
+  const { data: user } = useUser();
+
   return (
     <section className="w-full py-10 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -19,18 +24,12 @@ export default function CTASection() {
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
-                  href="/register"
+                  href={user ? "/market" : "/register"}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-emerald-700 transition-opacity hover:opacity-90"
                 >
-                  Bắt đầu miễn phí
+                  {user ? "Khám phá Market" : "Bắt đầu miễn phí"}
                   <ArrowRight className="size-4" />
                 </Link>
-                {/* <Link
-                href="/docs"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/30 px-6 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                Xem tài liệu
-              </Link> */}
               </div>
             </div>
 

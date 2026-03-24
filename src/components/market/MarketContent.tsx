@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+
 import { useDebounce } from "@/hooks/useDebounce";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
@@ -36,9 +38,23 @@ const categoryColors: Record<
   },
 };
 
+const categoryLabels: Record<string, string> = {
+  video: "Video",
+  image: "Image",
+  music: "Music",
+  chat: "Chat",
+};
+
 const PAGE_SIZE = 12;
 
 export default function MarketContent() {
+  const searchParams = useSearchParams();
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    () => {
+      const param = searchParams.get("category") || "";
+      return new Set(param ? param.split(",").filter(Boolean) : []);
+    },
+  );
   const [activeTab, setActiveTab] = useState<FilterTab>("tasks");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedProviders, setSelectedProviders] = useState<Set<string>>(
@@ -49,15 +65,21 @@ export default function MarketContent() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
 
+  const categoryValue =
+    selectedCategories.size > 0 ? [...selectedCategories].join(",") : undefined;
+
   const { data: modelsData, isLoading: modelsLoading } = useModels({
     q: debouncedSearch || undefined,
-    tags: selectedTags.size > 0 ? [...selectedTags].join(",") : undefined,
-    provider: selectedProviders.size > 0 ? [...selectedProviders].join(",") : undefined,
+    category: categoryValue,
+    taskTags: selectedTags.size > 0 ? [...selectedTags].join(",") : undefined,
+    provider:
+      selectedProviders.size > 0 ? [...selectedProviders].join(",") : undefined,
     page,
     limit: PAGE_SIZE,
   });
   const { data: filtersData } = useFilters();
   const allModels = modelsData?.data ?? [];
+
   const pagination = modelsData?.pagination;
   const taskCategories = filtersData?.categories ?? [];
   const providerList = filtersData?.providers ?? [];
@@ -77,6 +99,16 @@ export default function MarketContent() {
       const next = new Set(prev);
       if (next.has(provider)) next.delete(provider);
       else next.add(provider);
+      return next;
+    });
+    setPage(1);
+  }, []);
+
+  const handleCategoryToggle = useCallback((key: string) => {
+    setSelectedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
     setPage(1);
@@ -106,99 +138,137 @@ export default function MarketContent() {
         duration={400}
         className="hidden lg:block"
       >
-        <aside className="w-[300px] shrink-0 self-start rounded-2xl border border-border p-5 lg:sticky lg:top-6">
-          {/* Tabs */}
-          <div className="mb-6 inline-flex rounded-full border border-border p-0.5">
-            <button
-              type="button"
-              onClick={() => setActiveTab("tasks")}
-              className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
-                activeTab === "tasks"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Tasks ({taskCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("providers")}
-              className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
-                activeTab === "providers"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Providers ({providerList.length})
-            </button>
-          </div>
-
-          {/* Tasks tab */}
-          {activeTab === "tasks" && (
-            <nav className="space-y-6">
-              {taskCategories.map((category) => {
-                const colors = categoryColors[category.id];
-                return (
-                  <div key={category.id}>
-                    <h4
-                      className={`mb-3 text-sm font-bold ${colors?.text ?? "text-foreground"}`}
-                    >
-                      {category.label}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {category.options.map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => handleTagToggle(option.id)}
-                          className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
-                            selectedTags.has(option.id)
-                              ? (colors?.activeBg ??
-                                "border-primary bg-primary text-primary-foreground")
-                              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </nav>
-          )}
-
-          {/* Providers tab */}
-          {activeTab === "providers" && (
+        <div className="w-[300px] shrink-0 space-y-4 self-start lg:sticky lg:top-6">
+          {/* Category card */}
+          <div className="rounded-2xl border border-border p-5">
+            <h4 className="mb-3 text-sm font-bold text-foreground">Danh mục</h4>
             <div className="flex flex-wrap gap-2">
-              {providerList.map((provider) => (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategories(new Set());
+                  setPage(1);
+                }}
+                className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                  selectedCategories.size === 0
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                }`}
+              >
+                Tất cả
+              </button>
+              {Object.entries(categoryLabels).map(([key, label]) => (
                 <button
-                  key={provider}
+                  key={key}
                   type="button"
-                  onClick={() => handleProviderToggle(provider)}
+                  onClick={() => handleCategoryToggle(key)}
                   className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
-                    selectedProviders.has(provider)
+                    selectedCategories.has(key)
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                   }`}
                 >
-                  {provider}
+                  {label}
                 </button>
               ))}
             </div>
-          )}
+          </div>
 
-          {/* Clear all */}
-          {hasFilters && (
-            <button
-              type="button"
-              onClick={handleClearAll}
-              className="mt-6 cursor-pointer text-sm font-medium text-primary transition-colors hover:text-primary-hover"
-            >
-              Xoá bộ lọc
-            </button>
-          )}
-        </aside>
+          {/* Tasks/Providers card */}
+          <div className="rounded-2xl border border-border p-5">
+            {/* Tabs */}
+            <div className="mb-6 inline-flex rounded-full border border-border p-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveTab("tasks")}
+                className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                  activeTab === "tasks"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Tasks ({taskCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("providers")}
+                className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                  activeTab === "providers"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Providers ({providerList.length})
+              </button>
+            </div>
+
+            {/* Tasks tab */}
+            {activeTab === "tasks" && (
+              <nav className="space-y-6">
+                {taskCategories.map((category) => {
+                  const colors = categoryColors[category.id];
+                  return (
+                    <div key={category.id}>
+                      <h4
+                        className={`mb-3 text-sm font-bold ${colors?.text ?? "text-foreground"}`}
+                      >
+                        {category.label}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {category.options.map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => handleTagToggle(option.id)}
+                            className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                              selectedTags.has(option.id)
+                                ? (colors?.activeBg ??
+                                  "border-primary bg-primary text-primary-foreground")
+                                : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </nav>
+            )}
+
+            {/* Providers tab */}
+            {activeTab === "providers" && (
+              <div className="flex flex-wrap gap-2">
+                {providerList.map((provider) => (
+                  <button
+                    key={provider}
+                    type="button"
+                    onClick={() => handleProviderToggle(provider)}
+                    className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                      selectedProviders.has(provider)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                    }`}
+                  >
+                    {provider}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Clear all */}
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="mt-6 cursor-pointer text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+              >
+                Xoá bộ lọc
+              </button>
+            )}
+          </div>
+        </div>
       </FadeIn>
 
       {/* Main content */}
@@ -208,7 +278,9 @@ export default function MarketContent() {
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-xl font-bold text-foreground">
-                Tất cả Models
+                {selectedCategories.size > 0
+                  ? `${[...selectedCategories].map((c) => categoryLabels[c] ?? c).join(", ")} Models`
+                  : "Tất cả Models"}
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Tìm thấy {pagination?.total ?? filteredModels.length} model
@@ -242,6 +314,24 @@ export default function MarketContent() {
             />
           </div>
         </div>
+
+        {/* Category chips */}
+        {selectedCategories.size > 0 && (
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Danh mục:</span>
+            {[...selectedCategories].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => handleCategoryToggle(cat)}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground"
+              >
+                {categoryLabels[cat] ?? cat}
+                <X className="size-3.5" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Active filter chips (mobile) */}
         {hasFilters && (
@@ -426,7 +516,12 @@ export default function MarketContent() {
               Trước
             </button>
             {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-              .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - page) <= 1)
+              .filter(
+                (p) =>
+                  p === 1 ||
+                  p === pagination.totalPages ||
+                  Math.abs(p - page) <= 1,
+              )
               .reduce<(number | "...")[]>((acc, p, i, arr) => {
                 if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
                 acc.push(p);
@@ -434,7 +529,9 @@ export default function MarketContent() {
               }, [])
               .map((p, i) =>
                 p === "..." ? (
-                  <span key={`dot-${i}`} className="px-1 text-muted-foreground">...</span>
+                  <span key={`dot-${i}`} className="px-1 text-muted-foreground">
+                    ...
+                  </span>
                 ) : (
                   <button
                     key={p}

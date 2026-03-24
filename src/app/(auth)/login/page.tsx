@@ -164,6 +164,7 @@ export default function LoginPage() {
                     </label>
                     <button
                       type="button"
+                      tabIndex={-1}
                       onClick={() => setMode("forgot")}
                       className="cursor-pointer text-xs text-primary transition-colors hover:text-primary/80 font-semibold"
                     >

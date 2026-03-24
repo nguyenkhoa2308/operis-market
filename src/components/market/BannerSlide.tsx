@@ -10,7 +10,7 @@ interface BannerSlideProps {
 export default function BannerSlide({ slide }: BannerSlideProps) {
   return (
     <div
-      className={`relative flex h-full items-center overflow-hidden rounded-xl bg-gradient-to-r from-black/60 via-black/30 to-transparent`}
+      className="relative flex h-full items-center overflow-hidden bg-black/40 select-none"
     >
       {/* Background image */}
       {slide.image && (
@@ -24,8 +24,8 @@ export default function BannerSlide({ slide }: BannerSlideProps) {
         />
       )}
 
-      {/* Gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
       {/* Content */}
       <div className="relative z-[1] flex h-full flex-col justify-end px-5 pb-10 pt-5 sm:px-8 md:px-12">
@@ -42,12 +42,12 @@ export default function BannerSlide({ slide }: BannerSlideProps) {
         </div>
 
         {/* Model name */}
-        <h2 className="mb-1.5 text-xl font-bold text-white sm:mb-3 sm:text-2xl md:text-3xl">
+        <h2 className="mb-1.5 text-xl font-bold text-white drop-shadow-lg sm:mb-3 sm:text-2xl md:text-3xl">
           {slide.modelName}
         </h2>
 
         {/* Description */}
-        <p className="mb-3 line-clamp-2 max-w-lg text-xs leading-relaxed text-white/80 sm:mb-5 sm:line-clamp-3 sm:text-sm md:text-base">
+        <p className="mb-3 line-clamp-2 max-w-lg text-sm leading-relaxed text-white drop-shadow-md sm:mb-5 sm:line-clamp-3 sm:text-sm md:text-base">
           {slide.description}
         </p>
 
