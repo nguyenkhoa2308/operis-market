@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import Link from "next/link";
 import DocsSidebar, { type DocSection } from "@/components/docs/DocsSidebar";
 import CodeBlock from "@/components/docs/CodeBlock";
@@ -26,6 +27,8 @@ import {
   DollarSign,
   Gauge,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useApiDocs } from "@/hooks/use-api-docs";
 import { usePricingList } from "@/hooks/use-models";
@@ -83,6 +86,16 @@ export default function DocsPage() {
   const { data: docs, isLoading: docsLoading } = useApiDocs();
   const { data: chatPricing } = usePricingList({ category: "chat", limit: 50 });
   const { data: imagePricing } = usePricingList({ category: "image", limit: 50 });
+  const contentRef = useRef<HTMLElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAll = async () => {
+    if (!contentRef.current) return;
+    const text = contentRef.current.innerText;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Find endpoints from API
   const chatEndpoint = docs?.endpoints.find((e) => e.path === "/v1/chat/completions");
@@ -111,6 +124,22 @@ export default function DocsPage() {
             <LinkButton href="/market" icon={Zap} variant="secondary">
               Xem Models
             </LinkButton>
+            <button
+              onClick={handleCopyAll}
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background-secondary"
+            >
+              {copied ? (
+                <>
+                  <Check className="size-4 text-green-500" />
+                  Đã copy!
+                </>
+              ) : (
+                <>
+                  <Copy className="size-4" />
+                  Copy tất cả
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -129,7 +158,7 @@ export default function DocsPage() {
           </aside>
 
           {/* Main content */}
-          <main className="min-w-0 flex-1 space-y-16">
+          <main ref={contentRef} className="min-w-0 flex-1 space-y-16">
             {docsLoading && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" />
