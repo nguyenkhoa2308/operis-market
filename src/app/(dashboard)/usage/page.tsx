@@ -137,8 +137,8 @@ function PerAccountTab() {
         <StatCard icon={TrendingUp} label="Chi phi (VND)" value={totalCostVnd.toLocaleString("vi-VN") + "d"} />
         <StatCard icon={Activity} label="Total Requests" value={totalRequests.toLocaleString()} />
         <StatCard icon={Zap} label="Avg Cost/Request" value={avgCost.toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + "d"} />
-        <StatCard icon={BarChart3} label="Prompt Tokens" value={totalPromptTokens.toLocaleString()} />
-        <StatCard icon={BarChart3} label="Completion Tokens" value={totalCompletionTokens.toLocaleString()} />
+        <StatCard icon={BarChart3} label="Token Input" value={totalPromptTokens.toLocaleString()} />
+        <StatCard icon={BarChart3} label="Token Output" value={totalCompletionTokens.toLocaleString()} />
         {balanceVnd > 0 && (
           <StatCard icon={Shield} label="So du" value={balanceVnd.toLocaleString("vi-VN") + "d"} />
         )}
@@ -221,9 +221,9 @@ function PerAccountTab() {
                 <tr className="border-b border-border text-xs text-muted-foreground">
                   <th className="pb-2 text-left font-medium">Model</th>
                   <th className="pb-2 text-right font-medium">Requests</th>
-                  <th className="pb-2 text-right font-medium">Prompt Tokens</th>
+                  <th className="pb-2 text-right font-medium">Token Input</th>
                   <th className="pb-2 text-right font-medium">
-                    Completion Tokens
+                    Token Output
                   </th>
                   <th className="pb-2 text-right font-medium">Token Ratio</th>
                   <th className="pb-2 text-right font-medium">Avg Cost</th>

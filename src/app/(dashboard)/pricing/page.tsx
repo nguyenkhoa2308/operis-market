@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { Search, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePricingList } from "@/hooks/use-models";
-import { USD_TO_VND, pricingCategoryTabs } from "@/data/pricing";
-import type { PricingCategory } from "@/data/pricing";
+import { USD_TO_VND, pricingCategoryTabs } from "@/data/pricing-constants";
+import type { PricingCategory } from "@/data/pricing-constants";
 
 const categoryBadgeColors: Record<PricingCategory, string> = {
   chat: "bg-violet-500/20 text-violet-400 border-violet-500/30",

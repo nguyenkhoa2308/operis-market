@@ -27,11 +27,12 @@ import { useModelDetail } from "@/hooks/use-models";
 import { Switch } from "@/components/ui/switch";
 import {
   getPlaygroundFields,
-  getApiEndpointsForCategory,
   getRequestBodyExample,
-  getRootParamsForCategory,
   getExamplesForCategory,
 } from "@/data/model-detail";
+import { useApiDocs, getEndpointsForCategory, getPrimaryEndpoint } from "@/hooks/use-api-docs";
+import { QUICKSTART_STEPS, SUPPORT_EMAIL } from "@/data/api-docs-content";
+import { USD_TO_VND } from "@/data/pricing-constants";
 import { api } from "@/lib/api";
 
 type Tab = "playground" | "examples" | "readme" | "api";
@@ -251,7 +252,7 @@ function PlaygroundTab({
           ? "audio"
           : "text";
 
-  const USD_TO_VND = 25_000;
+  // Use shared USD_TO_VND from pricing-constants
   const tier = pricingTiers?.[0];
   const priceLabel = tier
     ? `${Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
@@ -642,23 +643,17 @@ function ReadmeTab({
   slug,
   description,
   category,
-  pricing,
+  pricingTiers,
 }: {
   modelName: string;
   slug: string;
   description: string;
   category: string;
-  pricing: string;
+  pricingTiers?: ModelDetail["modelPricingTiers"];
 }) {
-  const endpointPath =
-    category === "image"
-      ? "/v1/images/generations"
-      : category === "video"
-        ? "/v1/videos/generations"
-        : category === "music"
-          ? "/v1/music/generations"
-          : "/v1/chat/completions";
-
+  const { data: docs } = useApiDocs();
+  const primaryEndpoint = getPrimaryEndpoint(docs?.endpoints, category);
+  const endpointPath = primaryEndpoint?.path ?? "/v1/chat/completions";
   const exampleBody = getRequestBodyExample(category, slug);
 
   return (
@@ -683,9 +678,44 @@ function ReadmeTab({
             <h3 className="mb-3 text-base font-bold text-foreground">
               💰 Pricing
             </h3>
-            <div className="rounded-lg border border-border bg-muted/20 p-4">
-              <p className="text-sm text-foreground">{pricing}</p>
-            </div>
+            {pricingTiers && pricingTiers.length > 0 ? (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="px-4 py-2 text-left font-semibold text-foreground">Tier</th>
+                      <th className="px-4 py-2 text-right font-semibold text-foreground">Input</th>
+                      {pricingTiers.some((t) => t.outputPrice !== null) && (
+                        <th className="px-4 py-2 text-right font-semibold text-foreground">Output</th>
+                      )}
+                      <th className="px-4 py-2 text-right font-semibold text-foreground">Đơn vị</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pricingTiers.map((tier) => (
+                      <tr key={tier.id} className="border-b border-border last:border-0">
+                        <td className="px-4 py-2 text-foreground">{tier.name}</td>
+                        <td className="px-4 py-2 text-right text-foreground">
+                          {Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ
+                        </td>
+                        {pricingTiers.some((t) => t.outputPrice !== null) && (
+                          <td className="px-4 py-2 text-right text-foreground">
+                            {tier.outputPrice !== null
+                              ? `${Math.round(Number(tier.outputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
+                              : "—"}
+                          </td>
+                        )}
+                        <td className="px-4 py-2 text-right text-muted-foreground">{tier.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border bg-muted/20 p-4">
+                <p className="text-sm text-muted-foreground">Đang tải pricing...</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -693,10 +723,9 @@ function ReadmeTab({
               🚀 Quick Start
             </h3>
             <ol className="space-y-1.5 text-sm text-muted-foreground">
-              <li>1. Đăng ký tài khoản tại Operis Market</li>
-              <li>2. Nạp credits vào tài khoản</li>
-              <li>3. Tạo API Key tại trang quản lý</li>
-              <li>4. Gọi API endpoint bên dưới</li>
+              {QUICKSTART_STEPS.slice(0, 4).map((s) => (
+                <li key={s.n}>{s.n}. {s.title} — {s.desc}</li>
+              ))}
             </ol>
           </div>
 
@@ -716,10 +745,14 @@ ${exampleBody}`}</code>
             <h3 className="mb-2 text-base font-bold text-foreground">
               ⚡ Rate Limits
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Free tier: 10 requests/minute. Paid tier: 100 requests/minute.
-              Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
-            </p>
+            {docs?.rateLimits ? (
+              <p className="text-sm text-muted-foreground">
+                {docs.rateLimits.rpm.toLocaleString()} requests/phút · {docs.rateLimits.tpm.toLocaleString()} tokens/phút · {docs.rateLimits.maxParallelRequests} request đồng thời.
+                Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Đang tải...</p>
+            )}
           </div>
 
           <div>
@@ -727,8 +760,7 @@ ${exampleBody}`}</code>
               🆘 Support
             </h3>
             <p className="text-sm text-muted-foreground">
-              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email
-              support@operis.market
+              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email {SUPPORT_EMAIL}
             </p>
           </div>
         </div>
@@ -739,11 +771,11 @@ ${exampleBody}`}</code>
 
 /* ─── API Tab ─── */
 function ApiTab({ slug, category }: { slug: string; category: string }) {
-  const endpoints = getApiEndpointsForCategory(category);
+  const { data: docs, isLoading } = useApiDocs();
+  const endpoints = getEndpointsForCategory(docs?.endpoints, category);
   const [activeEndpoint, setActiveEndpoint] = useState(0);
   const [copied, setCopied] = useState(false);
   const ep = endpoints[activeEndpoint] ?? endpoints[0];
-  const rootParams = getRootParamsForCategory(category);
   const requestBodyExampleStr = getRequestBodyExample(category, slug);
 
   const handleCopy = (text: string) => {
@@ -751,6 +783,15 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (isLoading || !ep) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-6 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-muted-foreground">Đang tải API docs...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row">
@@ -788,14 +829,14 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
           ))}
 
           <Link
-            href="#"
+            href="/docs"
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-foreground transition-colors hover:bg-muted/50"
           >
             <Info className="size-4 shrink-0 text-primary" />
             <div>
               <p className="text-sm font-semibold text-primary">Get Started</p>
               <p className="text-[11px] text-muted-foreground">
-                Things You Should Know
+                Xem tài liệu đầy đủ
               </p>
             </div>
             <ChevronRight className="ml-auto size-4 text-muted-foreground" />
@@ -894,7 +935,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
               Root Level Parameters
             </h4>
             <div className="space-y-4">
-              {rootParams.map((param) => (
+              {(ep?.params ?? []).map((param: { name: string; type: string; required: boolean; description: string }) => (
                 <div
                   key={param.name}
                   className="rounded-lg border border-border bg-background p-4"
@@ -1073,8 +1114,10 @@ export default function ModelDetailClient({
             <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
               <span>💰</span>
               <span>
-                Pricing: {model.name} — {model.pricingDisplay ?? model.pricing}.
-                High-tier top-ups (+10% bonus) bring effective pricing down.
+                {model.modelPricingTiers?.[0]
+                  ? `Pricing: ${model.name} — từ ${Math.round(Number(model.modelPricingTiers[0].inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ/${model.modelPricingTiers[0].unit}.`
+                  : `Pricing: ${model.name}`}
+                {" "}Nạp tiền nhiều hơn để được bonus (+10%).
               </span>
             </p>
           </div>
@@ -1176,7 +1219,7 @@ export default function ModelDetailClient({
                 slug={model.slug}
                 description={model.description}
                 category={model.category}
-                pricing={model.pricing}
+                pricingTiers={model.modelPricingTiers}
               />
             </div>
           </>

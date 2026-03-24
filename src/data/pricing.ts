@@ -39,7 +39,6 @@ export const pricingModels: PricingModel[] = [
   { id: "gemini-2.5-pro", model: "Gemini 2.5 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.456, outputPrice: 3.60, inputOfficial: 1.25, outputOfficial: 10.00 },
   { id: "gemini-3-flash", model: "Gemini 3 Flash", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.18, outputPrice: 1.08, inputOfficial: 0.50, outputOfficial: 3.00 },
   { id: "gemini-3-pro", model: "Gemini 3 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
-  { id: "gemini-3.1-pro", model: "Gemini 3.1 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
   // ── Anthropic ──
   { id: "claude-sonnet-4-5", model: "Claude Sonnet 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 1.20, outputPrice: 3.60, inputOfficial: 3.00, outputOfficial: 15.00 },
   { id: "claude-opus-4-5", model: "Claude Opus 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 3.60, outputPrice: 6.00, inputOfficial: 5.00, outputOfficial: 25.00 },
@@ -65,7 +64,4 @@ export const pricingModels: PricingModel[] = [
   { id: "grok-imagine-t2i", model: "Grok Imagine, text-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
   // ── Midjourney — Image ──
   { id: "midjourney", model: "Midjourney", category: "image", provider: "Midjourney", unit: "image", inputPrice: 25, outputPrice: 0, inputOfficial: 35, outputOfficial: null },
-  // ── Video ──
-  { id: "seedance-1.5-pro", model: "Seedance 1.5 Pro", category: "video", provider: "ByteDance", unit: "clip", inputPrice: 50, outputPrice: 0, inputOfficial: 65, outputOfficial: null },
-  { id: "sora-2-pro", model: "Sora 2 Pro", category: "video", provider: "OpenAI", unit: "clip", inputPrice: 100, outputPrice: 0, inputOfficial: 120, outputOfficial: null },
 ];

@@ -96,3 +96,8 @@ export function useUpdateWhitelist() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
   });
 }
+
+export async function fetchFullKey(id: string): Promise<string> {
+  const res = await api.get(`/api-keys/${id}/full-key`);
+  return res.data.data.key;
+}
