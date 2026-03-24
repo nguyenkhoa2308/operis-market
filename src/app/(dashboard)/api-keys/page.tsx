@@ -20,6 +20,7 @@ import {
   useRenameApiKey,
   useUpdateLimits,
   useUpdateWhitelist,
+  fetchFullKey,
   type ApiKeyCreated,
 } from "@/hooks/use-api-keys";
 import { toast } from "sonner";
@@ -512,19 +513,29 @@ function EditKeyModal({
   );
 }
 
-/* ─── Copy Key Button ─── */
-function CopyKeyButton({ text }: { text: string }) {
+/* ─── Copy Key Button (fetches full key from server) ─── */
+function CopyKeyButton({ keyId }: { keyId: string }) {
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
   return (
     <button
       type="button"
-      onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+      disabled={loading}
+      onClick={async () => {
+        setLoading(true);
+        try {
+          const fullKey = await fetchFullKey(keyId);
+          await navigator.clipboard.writeText(fullKey);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch {
+          toast.error("Không thể copy key. Key cũ chưa hỗ trợ, vui lòng tạo key mới.");
+        } finally {
+          setLoading(false);
+        }
       }}
-      className="shrink-0 cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-      title="Copy key"
+      className="shrink-0 cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
+      title="Copy full API key"
     >
       {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
     </button>
@@ -689,7 +700,7 @@ export default function ApiKeysPage() {
                   <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
                     {apiKey.keyPrefix}••••••••••••••••••••••••
                   </code>
-                  <CopyKeyButton text={apiKey.keyPrefix} />
+                  <CopyKeyButton keyId={apiKey.id} />
                 </div>
 
                 {/* Meta row */}
@@ -767,7 +778,7 @@ export default function ApiKeysPage() {
                         <code className="whitespace-nowrap font-mono text-xs leading-none text-muted-foreground">
                           {apiKey.keyPrefix}••••••••••••••••••••••••
                         </code>
-                        <CopyKeyButton text={apiKey.keyPrefix} />
+                        <CopyKeyButton keyId={apiKey.id} />
                       </div>
                     </td>
 

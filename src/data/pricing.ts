@@ -65,7 +65,4 @@ export const pricingModels: PricingModel[] = [
   { id: "grok-imagine-t2i", model: "Grok Imagine, text-to-image", category: "image", provider: "Grok", unit: "image", inputPrice: 0.02, outputPrice: 0, inputOfficial: null, outputOfficial: null },
   // ── Midjourney — Image ──
   { id: "midjourney", model: "Midjourney", category: "image", provider: "Midjourney", unit: "image", inputPrice: 25, outputPrice: 0, inputOfficial: 35, outputOfficial: null },
-  // ── Video ──
-  { id: "seedance-1.5-pro", model: "Seedance 1.5 Pro", category: "video", provider: "ByteDance", unit: "clip", inputPrice: 50, outputPrice: 0, inputOfficial: 65, outputOfficial: null },
-  { id: "sora-2-pro", model: "Sora 2 Pro", category: "video", provider: "OpenAI", unit: "clip", inputPrice: 100, outputPrice: 0, inputOfficial: 120, outputOfficial: null },
 ];
