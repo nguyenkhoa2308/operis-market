@@ -27,11 +27,11 @@ import { useModelDetail } from "@/hooks/use-models";
 import { Switch } from "@/components/ui/switch";
 import {
   getPlaygroundFields,
-  getApiEndpointsForCategory,
   getRequestBodyExample,
-  getRootParamsForCategory,
   getExamplesForCategory,
 } from "@/data/model-detail";
+import { useApiDocs, getEndpointsForCategory, getPrimaryEndpoint } from "@/hooks/use-api-docs";
+import { QUICKSTART_STEPS, SUPPORT_EMAIL } from "@/data/api-docs-content";
 import { api } from "@/lib/api";
 
 type Tab = "playground" | "examples" | "readme" | "api";
@@ -650,15 +650,9 @@ function ReadmeTab({
   category: string;
   pricing: string;
 }) {
-  const endpointPath =
-    category === "image"
-      ? "/v1/images/generations"
-      : category === "video"
-        ? "/v1/videos/generations"
-        : category === "music"
-          ? "/v1/music/generations"
-          : "/v1/chat/completions";
-
+  const { data: docs } = useApiDocs();
+  const primaryEndpoint = getPrimaryEndpoint(docs?.endpoints, category);
+  const endpointPath = primaryEndpoint?.path ?? "/v1/chat/completions";
   const exampleBody = getRequestBodyExample(category, slug);
 
   return (
@@ -693,10 +687,9 @@ function ReadmeTab({
               🚀 Quick Start
             </h3>
             <ol className="space-y-1.5 text-sm text-muted-foreground">
-              <li>1. Đăng ký tài khoản tại Operis Market</li>
-              <li>2. Nạp credits vào tài khoản</li>
-              <li>3. Tạo API Key tại trang quản lý</li>
-              <li>4. Gọi API endpoint bên dưới</li>
+              {QUICKSTART_STEPS.slice(0, 4).map((s) => (
+                <li key={s.n}>{s.n}. {s.title} — {s.desc}</li>
+              ))}
             </ol>
           </div>
 
@@ -716,10 +709,14 @@ ${exampleBody}`}</code>
             <h3 className="mb-2 text-base font-bold text-foreground">
               ⚡ Rate Limits
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Free tier: 10 requests/minute. Paid tier: 100 requests/minute.
-              Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
-            </p>
+            {docs?.rateLimits ? (
+              <p className="text-sm text-muted-foreground">
+                {docs.rateLimits.rpm.toLocaleString()} requests/phút · {docs.rateLimits.tpm.toLocaleString()} tokens/phút · {docs.rateLimits.maxParallelRequests} request đồng thời.
+                Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Đang tải...</p>
+            )}
           </div>
 
           <div>
@@ -727,8 +724,7 @@ ${exampleBody}`}</code>
               🆘 Support
             </h3>
             <p className="text-sm text-muted-foreground">
-              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email
-              support@operis.market
+              Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email {SUPPORT_EMAIL}
             </p>
           </div>
         </div>
@@ -739,11 +735,11 @@ ${exampleBody}`}</code>
 
 /* ─── API Tab ─── */
 function ApiTab({ slug, category }: { slug: string; category: string }) {
-  const endpoints = getApiEndpointsForCategory(category);
+  const { data: docs } = useApiDocs();
+  const endpoints = getEndpointsForCategory(docs?.endpoints, category);
   const [activeEndpoint, setActiveEndpoint] = useState(0);
   const [copied, setCopied] = useState(false);
   const ep = endpoints[activeEndpoint] ?? endpoints[0];
-  const rootParams = getRootParamsForCategory(category);
   const requestBodyExampleStr = getRequestBodyExample(category, slug);
 
   const handleCopy = (text: string) => {
@@ -788,14 +784,14 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
           ))}
 
           <Link
-            href="#"
+            href="/docs"
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-foreground transition-colors hover:bg-muted/50"
           >
             <Info className="size-4 shrink-0 text-primary" />
             <div>
               <p className="text-sm font-semibold text-primary">Get Started</p>
               <p className="text-[11px] text-muted-foreground">
-                Things You Should Know
+                Xem tài liệu đầy đủ
               </p>
             </div>
             <ChevronRight className="ml-auto size-4 text-muted-foreground" />
@@ -894,7 +890,7 @@ function ApiTab({ slug, category }: { slug: string; category: string }) {
               Root Level Parameters
             </h4>
             <div className="space-y-4">
-              {rootParams.map((param) => (
+              {(ep?.params ?? []).map((param: { name: string; type: string; required: boolean; description: string }) => (
                 <div
                   key={param.name}
                   className="rounded-lg border border-border bg-background p-4"

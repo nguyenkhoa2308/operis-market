@@ -102,20 +102,6 @@ export function generateStatusBars(): ("ok" | "degraded" | "error")[] {
   return bars;
 }
 
-/* ─── API Endpoints (for API tab) ─── */
-export const apiEndpoints = [
-  { name: "Chat Completion", method: "POST", path: "/v1/chat/completions", description: "Generate a chat completion response from the specified model", categories: ["chat"] },
-  { name: "Image Generation", method: "POST", path: "/api/chat/image/generations", description: "Create an image given a text prompt", categories: ["image"] },
-  { name: "Video Generation", method: "POST", path: "/v1/videos/generations", description: "Create a video clip from a text or image prompt", categories: ["video"] },
-  { name: "Music Generation", method: "POST", path: "/v1/music/generations", description: "Generate a music track from a text description", categories: ["music"] },
-  { name: "List Models", method: "GET", path: "/v1/models", description: "List available AI models with pricing and capabilities", categories: ["chat", "image", "video", "music"] },
-  { name: "Check Balance", method: "GET", path: "/v1/balance", description: "Get current credit balance for authenticated user", categories: ["chat", "image", "video", "music"] },
-];
-
-export function getApiEndpointsForCategory(category: string) {
-  return apiEndpoints.filter((ep) => ep.categories.includes(category));
-}
-
 /* ─── Examples by category ─── */
 export interface ExampleItem {
   title: string;
@@ -168,56 +154,3 @@ export function getRequestBodyExample(category: string, slug: string): string {
   }
 }
 
-/* ─── Request body example (legacy, for backward compat) ─── */
-export const requestBodyExample = `{
-  "model": "string",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Hello, how are you?"
-    }
-  ],
-  "temperature": 0.7,
-  "max_tokens": 2048,
-  "stream": false
-}`;
-
-/* ─── Root parameters by category ─── */
-const chatRootParams = [
-  { name: "model", type: "string", required: true, description: "The model slug to use for generation" },
-  { name: "messages", type: "array", required: true, description: "Array of message objects with role and content" },
-  { name: "temperature", type: "number", required: false, description: "Sampling temperature (0-2), controls randomness. Default 0.7" },
-  { name: "max_tokens", type: "integer", required: false, description: "Maximum number of tokens to generate. Default 2048" },
-  { name: "stream", type: "boolean", required: false, description: "Enable streaming response. Default false" },
-];
-
-const imageRootParams = [
-  { name: "model", type: "string", required: true, description: "The image model slug to use" },
-  { name: "prompt", type: "string", required: true, description: "Text description of the image to generate" },
-  { name: "aspect_ratio", type: "string", required: false, description: "Aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3. Default 1:1" },
-  { name: "resolution", type: "string", required: false, description: "Output resolution: 1K, 2K, 4K. Default 1K" },
-];
-
-const videoRootParams = [
-  { name: "model", type: "string", required: true, description: "The video model slug to use" },
-  { name: "prompt", type: "string", required: true, description: "Text description of the video to generate" },
-  { name: "duration", type: "integer", required: false, description: "Video duration in seconds (4-15). Default 5" },
-];
-
-const musicRootParams = [
-  { name: "model", type: "string", required: true, description: "The music model slug to use" },
-  { name: "prompt", type: "string", required: true, description: "Text description of the music to generate" },
-  { name: "duration", type: "integer", required: false, description: "Music duration in seconds. Default 60" },
-];
-
-export function getRootParamsForCategory(category: string) {
-  switch (category) {
-    case "image": return imageRootParams;
-    case "video": return videoRootParams;
-    case "music": return musicRootParams;
-    default: return chatRootParams;
-  }
-}
-
-/* ─── Root parameters (legacy) ─── */
-export const rootParams = chatRootParams;

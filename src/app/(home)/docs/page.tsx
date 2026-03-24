@@ -1,13 +1,53 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import DocsSidebar, { type DocSection } from "@/components/docs/DocsSidebar";
 import CodeBlock from "@/components/docs/CodeBlock";
-import { Key, Zap, BookOpen, MessageSquare, List, AlertCircle, Code2, ImageIcon, DollarSign, Gauge } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "API Docs — Operis Market",
-  description: "Tài liệu tích hợp API Operis Market cho developers. Hướng dẫn xác thực, chat completions, streaming và danh sách models.",
-};
+import {
+  Section,
+  SubSection,
+  Step,
+  InlineCode,
+  ParamRow,
+  ErrorRow,
+  EndpointHeader,
+  NoteBox,
+  LinkButton,
+} from "@/components/docs/DocsComponents";
+import {
+  Key,
+  Zap,
+  BookOpen,
+  MessageSquare,
+  List,
+  AlertCircle,
+  Code2,
+  ImageIcon,
+  DollarSign,
+  Gauge,
+  Loader2,
+} from "lucide-react";
+import { useApiDocs } from "@/hooks/use-api-docs";
+import { usePricingList } from "@/hooks/use-models";
+import { USD_TO_VND } from "@/data/pricing-constants";
+import {
+  QUICKSTART_CODE,
+  AUTH_CODE,
+  CHAT_BASIC_CODE,
+  CHAT_STREAM_CODE,
+  IMAGE_BASIC_CODE,
+  MODELS_CODE,
+  EXAMPLE_CHATBOT_CODE,
+  QUICKSTART_STEPS,
+  CHAT_RESPONSE_EXAMPLE,
+  CHAT_STREAM_RESPONSE_EXAMPLE,
+  IMAGE_RESPONSE_EXAMPLE,
+  ERROR_RESPONSE_EXAMPLE,
+  RATE_LIMIT_ERROR_EXAMPLE,
+  IMAGE_NOTES,
+  RATE_LIMIT_BEST_PRACTICES,
+  RATE_LIMIT_HEADERS,
+} from "@/data/api-docs-content";
 
 const NAV_SECTIONS: DocSection[] = [
   { id: "quickstart", label: "Bắt đầu nhanh" },
@@ -35,498 +75,42 @@ const NAV_SECTIONS: DocSection[] = [
   { id: "examples", label: "Ví dụ thực tế" },
 ];
 
-// ─── Code examples ──────────────────────────────────────────────────────────
-
-const QUICKSTART_CODE = [
-  {
-    label: "cURL",
-    code: `curl https://models.operis.vn/v1/chat/completions \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "model": "gemini-2.5-flash",
-    "messages": [
-      { "role": "user", "content": "Xin chào!" }
-    ]
-  }'`,
-  },
-  {
-    label: "Python",
-    code: `from openai import OpenAI
-
-client = OpenAI(
-    api_key="YOUR_API_KEY",
-    base_url="https://models.operis.vn/v1"
-)
-
-response = client.chat.completions.create(
-    model="gemini-2.5-flash",
-    messages=[
-        {"role": "user", "content": "Xin chào!"}
-    ]
-)
-
-print(response.choices[0].message.content)`,
-  },
-  {
-    label: "JavaScript",
-    code: `import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: "YOUR_API_KEY",
-  baseURL: "https://models.operis.vn/v1",
-});
-
-const response = await client.chat.completions.create({
-  model: "gemini-2.5-flash",
-  messages: [{ role: "user", content: "Xin chào!" }],
-});
-
-console.log(response.choices[0].message.content);`,
-  },
-];
-
-const AUTH_CODE = [
-  {
-    label: "cURL",
-    code: `# Thêm API key vào header Authorization
-curl https://models.operis.vn/v1/chat/completions \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{ ... }'`,
-  },
-  {
-    label: "Python",
-    code: `import os
-from openai import OpenAI
-
-# Lưu key trong biến môi trường
-client = OpenAI(
-    api_key=os.environ.get("OPERIS_API_KEY"),
-    base_url="https://models.operis.vn/v1"
-)`,
-  },
-  {
-    label: "JavaScript",
-    code: `import OpenAI from "openai";
-
-// Lưu key trong .env: OPERIS_API_KEY=your_key_here
-const client = new OpenAI({
-  apiKey: process.env.OPERIS_API_KEY,
-  baseURL: "https://models.operis.vn/v1",
-});`,
-  },
-];
-
-const CHAT_BASIC_CODE = [
-  {
-    label: "cURL",
-    code: `curl https://models.operis.vn/v1/chat/completions \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "model": "gemini-2.5-pro",
-    "messages": [
-      {
-        "role": "system",
-        "content": "Bạn là trợ lý AI hữu ích, trả lời bằng tiếng Việt."
-      },
-      {
-        "role": "user",
-        "content": "Giải thích machine learning cho người mới học."
-      }
-    ],
-    "temperature": 0.7,
-    "max_tokens": 1024
-  }'`,
-  },
-  {
-    label: "Python",
-    code: `response = client.chat.completions.create(
-    model="gemini-2.5-pro",
-    messages=[
-        {
-            "role": "system",
-            "content": "Bạn là trợ lý AI hữu ích, trả lời bằng tiếng Việt."
-        },
-        {
-            "role": "user",
-            "content": "Giải thích machine learning cho người mới học."
-        }
-    ],
-    temperature=0.7,
-    max_tokens=1024,
-)
-
-print(response.choices[0].message.content)
-print(f"Tokens dùng: {response.usage.total_tokens}")`,
-  },
-  {
-    label: "JavaScript",
-    code: `const response = await client.chat.completions.create({
-  model: "gemini-2.5-pro",
-  messages: [
-    {
-      role: "system",
-      content: "Bạn là trợ lý AI hữu ích, trả lời bằng tiếng Việt.",
-    },
-    {
-      role: "user",
-      content: "Giải thích machine learning cho người mới học.",
-    },
-  ],
-  temperature: 0.7,
-  max_tokens: 1024,
-});
-
-console.log(response.choices[0].message.content);
-console.log("Tokens:", response.usage?.total_tokens);`,
-  },
-];
-
-const CHAT_STREAM_CODE = [
-  {
-    label: "cURL",
-    code: `curl https://models.operis.vn/v1/chat/completions \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  --no-buffer \\
-  -d '{
-    "model": "gemini-2.5-flash",
-    "messages": [{ "role": "user", "content": "Viết một bài thơ về Hà Nội." }],
-    "stream": true
-  }'`,
-  },
-  {
-    label: "Python",
-    code: `stream = client.chat.completions.create(
-    model="gemini-2.5-flash",
-    messages=[
-        {"role": "user", "content": "Viết một bài thơ về Hà Nội."}
-    ],
-    stream=True,
-)
-
-for chunk in stream:
-    delta = chunk.choices[0].delta.content
-    if delta:
-        print(delta, end="", flush=True)
-print()  # newline at end`,
-  },
-  {
-    label: "JavaScript",
-    code: `const stream = await client.chat.completions.create({
-  model: "gemini-2.5-flash",
-  messages: [{ role: "user", content: "Viết một bài thơ về Hà Nội." }],
-  stream: true,
-});
-
-for await (const chunk of stream) {
-  const delta = chunk.choices[0]?.delta?.content ?? "";
-  process.stdout.write(delta);
-}`,
-  },
-];
-
-const IMAGE_BASIC_CODE = [
-  {
-    label: "cURL",
-    code: `curl -X POST https://models.operis.vn/v1/images/generations \\
-  -H "Authorization: Bearer $OPERIS_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "model": "nano-banana-2",
-    "prompt": "A serene mountain lake at golden hour, photorealistic",
-    "resolution": "2K",
-    "aspect_ratio": "16:9"
-  }'`,
-  },
-  {
-    label: "Python",
-    code: `import requests
-
-response = requests.post(
-    "https://models.operis.vn/v1/images/generations",
-    headers={
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Content-Type": "application/json",
-    },
-    json={
-        "model": "nano-banana-2",
-        "prompt": "A serene mountain lake at golden hour, photorealistic",
-        "resolution": "2K",
-        "aspect_ratio": "16:9",
-    },
-    timeout=300,  # Image generation có thể mất 10-60 giây
-)
-
-data = response.json()["data"]
-print(f"Created: {data['created']}")
-for img in data["data"]:
-    print(f"URL: {img['url']}")`,
-  },
-  {
-    label: "JavaScript",
-    code: `const response = await fetch("https://models.operis.vn/v1/images/generations", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    model: "nano-banana-2",
-    prompt: "A serene mountain lake at golden hour, photorealistic",
-    resolution: "2K",
-    aspect_ratio: "16:9",
-  }),
-});
-
-const { data } = await response.json();
-console.log("Image URL:", data.data[0].url);`,
-  },
-];
-
-const IMAGE_COMPLETIONS_CODE = [
-  {
-    label: "cURL",
-    code: `# Hoặc dùng endpoint /v1/chat/completions với image model:
-curl https://models.operis.vn/v1/chat/completions \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "model": "grok-imagine-t2i",
-    "prompt": "Cyberpunk city at night, neon lights",
-    "aspect_ratio": "1:1"
-  }'`,
-  },
-  {
-    label: "Python",
-    code: `# Image models cũng hoạt động qua endpoint completions
-response = requests.post(
-    "https://models.operis.vn/v1/chat/completions",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
-    json={
-        "model": "grok-imagine-t2i",
-        "prompt": "Cyberpunk city at night, neon lights",
-        "aspect_ratio": "1:1",
-    },
-    timeout=300,
-)
-
-images = response.json()["data"]["data"]
-for img in images:
-    print(img["url"])`,
-  },
-];
-
-const MODELS_CODE = [
-  {
-    label: "cURL",
-    code: `curl https://models.operis.vn/v1/models \\
-  -H "Authorization: Bearer YOUR_API_KEY"`,
-  },
-  {
-    label: "Python",
-    code: `models = client.models.list()
-for model in models.data:
-    print(model.id)`,
-  },
-  {
-    label: "JavaScript",
-    code: `const models = await client.models.list();
-for (const model of models.data) {
-  console.log(model.id);
-}`,
-  },
-];
-
-const EXAMPLE_CHATBOT_CODE = [
-  {
-    label: "Python",
-    code: `from openai import OpenAI
-
-client = OpenAI(
-    api_key="YOUR_API_KEY",
-    base_url="https://models.operis.vn/v1"
-)
-
-history = [
-    {"role": "system", "content": "Bạn là trợ lý hỗ trợ khách hàng."}
-]
-
-while True:
-    user_input = input("Bạn: ")
-    if user_input.lower() in ("quit", "exit"):
-        break
-
-    history.append({"role": "user", "content": user_input})
-
-    response = client.chat.completions.create(
-        model="gemini-2.5-flash",
-        messages=history,
-        stream=True,
-    )
-
-    print("AI: ", end="")
-    collected = ""
-    for chunk in response:
-        delta = chunk.choices[0].delta.content or ""
-        print(delta, end="", flush=True)
-        collected += delta
-    print()
-
-    history.append({"role": "assistant", "content": collected})`,
-  },
-  {
-    label: "JavaScript",
-    code: `import OpenAI from "openai";
-import * as readline from "readline";
-
-const client = new OpenAI({
-  apiKey: process.env.OPERIS_API_KEY,
-  baseURL: "https://models.operis.vn/v1",
-});
-
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-const history = [
-  { role: "system", content: "Bạn là trợ lý hỗ trợ khách hàng." },
-];
-
-async function chat(userInput) {
-  history.push({ role: "user", content: userInput });
-
-  const stream = await client.chat.completions.create({
-    model: "gemini-2.5-flash",
-    messages: history,
-    stream: true,
-  });
-
-  process.stdout.write("AI: ");
-  let collected = "";
-  for await (const chunk of stream) {
-    const delta = chunk.choices[0]?.delta?.content ?? "";
-    process.stdout.write(delta);
-    collected += delta;
-  }
-  console.log();
-
-  history.push({ role: "assistant", content: collected });
-}`,
-  },
-];
-
-// ─── Section component ────────────────────────────────────────────────────────
-
-function Section({
-  id,
-  icon: Icon,
-  title,
-  children,
-}: {
-  id: string;
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="scroll-mt-20 space-y-5">
-      <div className="flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10">
-          <Icon className="size-4 text-primary" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground">{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
+function formatVnd(usd: number): string {
+  return Math.round(usd * USD_TO_VND).toLocaleString("vi-VN");
 }
-
-function SubSection({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <div id={id} className="scroll-mt-20 space-y-4 pl-1">
-      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
-  return (
-    <div className="flex gap-4">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold mt-0.5">
-        {n}
-      </div>
-      <div>
-        <p className="font-medium text-foreground">{title}</p>
-        <p className="text-sm text-muted-foreground">{desc}</p>
-      </div>
-    </div>
-  );
-}
-
-function InlineCode({ children }: { children: React.ReactNode }) {
-  return (
-    <code className="rounded-md bg-accent px-1.5 py-0.5 text-[13px] font-mono text-foreground">
-      {children}
-    </code>
-  );
-}
-
-function ParamRow({ name, type, required, desc }: { name: string; type: string; required?: boolean; desc: string }) {
-  return (
-    <tr className="border-b border-border">
-      <td className="py-3 pr-4">
-        <InlineCode>{name}</InlineCode>
-        {required && <span className="ml-2 text-xs text-red-400">*</span>}
-      </td>
-      <td className="py-3 pr-4 text-xs text-muted-foreground font-mono">{type}</td>
-      <td className="py-3 text-sm text-muted-foreground">{desc}</td>
-    </tr>
-  );
-}
-
-function ErrorRow({ code, name, desc }: { code: number; name: string; desc: string }) {
-  return (
-    <tr className="border-b border-border">
-      <td className="py-3 pr-4 font-mono text-sm text-foreground">{code}</td>
-      <td className="py-3 pr-4 text-sm font-medium text-foreground">{name}</td>
-      <td className="py-3 text-sm text-muted-foreground">{desc}</td>
-    </tr>
-  );
-}
-
-// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function DocsPage() {
+  const { data: docs, isLoading: docsLoading } = useApiDocs();
+  const { data: chatPricing } = usePricingList({ category: "chat", limit: 50 });
+  const { data: imagePricing } = usePricingList({ category: "image", limit: 50 });
+
+  // Find endpoints from API
+  const chatEndpoint = docs?.endpoints.find((e) => e.path === "/v1/chat/completions");
+  const imageEndpoint = docs?.endpoints.find((e) => e.path === "/v1/images/generations");
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
       <div className="border-b border-border bg-background-secondary">
         <div className="mx-auto max-w-7xl px-6 py-12">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+          <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <BookOpen className="size-4" />
             <span>Tài liệu API</span>
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-3">API Reference</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Tích hợp các model AI hàng đầu vào sản phẩm của bạn qua một API đơn giản, tương thích OpenAI.
+          <h1 className="mb-3 text-4xl font-bold text-foreground">
+            API Reference
+          </h1>
+          <p className="max-w-2xl text-lg text-muted-foreground">
+            Tích hợp các model AI hàng đầu vào sản phẩm của bạn qua một API đơn
+            giản, tương thích OpenAI.
           </p>
-          <div className="flex items-center gap-3 mt-5">
-            <Link
-              href="/api-keys"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              <Key className="size-4" />
+          <div className="mt-5 flex items-center gap-3">
+            <LinkButton href="/api-keys" icon={Key}>
               Tạo API Key
-            </Link>
-            <Link
-              href="/playground"
-              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
-            >
-              <Zap className="size-4" />
-              Thử Playground
-            </Link>
+            </LinkButton>
+            <LinkButton href="/market" icon={Zap} variant="secondary">
+              Xem Models
+            </LinkButton>
           </div>
         </div>
       </div>
@@ -535,7 +119,7 @@ export default function DocsPage() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="flex gap-10">
           {/* Sidebar */}
-          <aside className="hidden lg:block w-56 shrink-0">
+          <aside className="hidden w-56 shrink-0 lg:block">
             <div className="sticky top-20">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Nội dung
@@ -545,7 +129,13 @@ export default function DocsPage() {
           </aside>
 
           {/* Main content */}
-          <main className="flex-1 min-w-0 space-y-16">
+          <main className="min-w-0 flex-1 space-y-16">
+            {docsLoading && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                <span className="text-sm">Đang tải...</span>
+              </div>
+            )}
 
             {/* ── Quickstart ── */}
             <Section id="quickstart" icon={Zap} title="Bắt đầu nhanh">
@@ -553,30 +143,21 @@ export default function DocsPage() {
                 Gọi API đầu tiên trong vài phút. Chỉ cần tài khoản và API key.
               </p>
               <div className="space-y-4">
-                <Step n={1} title="Tạo tài khoản" desc="Đăng ký tại operis.vn và xác thực email." />
-                <Step n={2} title="Nạp tiền" desc="Vào Thanh toán để nạp tiền (VND) vào tài khoản." />
-                <Step
-                  n={3}
-                  title="Tạo API Key"
-                  desc='Vào API Keys → "Tạo API Key mới". Sao chép key ngay, không thể xem lại sau.'
-                />
-                <Step n={4} title="Cài đặt SDK" desc="Cài đặt OpenAI SDK cho ngôn ngữ bạn sử dụng." />
-                <Step n={5} title="Gọi API" desc="Dùng code mẫu bên dưới để thực hiện request đầu tiên." />
+                {QUICKSTART_STEPS.map((s) => (
+                  <Step key={s.n} n={s.n} title={s.title} desc={s.desc} />
+                ))}
               </div>
 
-              <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
-                <p className="text-sm font-medium text-foreground">Cài đặt SDK</p>
+              <div className="space-y-3 rounded-xl border border-border bg-background-secondary p-5">
+                <p className="text-sm font-medium text-foreground">
+                  Cài đặt SDK
+                </p>
                 <CodeBlock
                   tabs={[
-                    {
-                      label: "Python",
-                      code: `# Python
-pip install openai`,
-                    },
+                    { label: "Python", code: "# Python\npip install openai" },
                     {
                       label: "JavaScript",
-                      code: `# JavaScript / Node.js
-npm install openai`,
+                      code: "# JavaScript / Node.js\nnpm install openai",
                     },
                   ]}
                 />
@@ -591,15 +172,16 @@ npm install openai`,
                 Tất cả request yêu cầu API key trong header{" "}
                 <InlineCode>Authorization</InlineCode>.
               </p>
-              <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
-                <p className="text-sm font-medium text-foreground">Format header</p>
+              <div className="space-y-3 rounded-xl border border-border bg-background-secondary p-5">
+                <p className="text-sm font-medium text-foreground">
+                  Format header
+                </p>
                 <InlineCode>Authorization: Bearer YOUR_API_KEY</InlineCode>
-                <div className="space-y-2 text-sm text-muted-foreground pt-1">
+                <div className="space-y-2 pt-1 text-sm text-muted-foreground">
+                  <p>Không chia sẻ key — chỉ hiển thị một lần khi tạo.</p>
                   <p>
-                    Không chia sẻ key — chỉ hiển thị một lần khi tạo.
-                  </p>
-                  <p>
-                    Luôn lưu key trong biến môi trường, không hardcode vào source code.
+                    Luôn lưu key trong biến môi trường, không hardcode vào source
+                    code.
                   </p>
                 </div>
               </div>
@@ -609,92 +191,82 @@ npm install openai`,
             {/* ── Chat Completions ── */}
             <Section id="chat" icon={MessageSquare} title="Chat Completions">
               <p className="text-muted-foreground">
-                Endpoint chính để tương tác với các LLM. Tương thích 100% với OpenAI SDK.
+                Endpoint chính để tương tác với các LLM. Tương thích 100% với
+                OpenAI SDK.
               </p>
 
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">POST</span>
-                  <code className="text-sm font-mono text-foreground">/v1/chat/completions</code>
+              {chatEndpoint && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <EndpointHeader
+                    method={chatEndpoint.method}
+                    path={chatEndpoint.path}
+                  />
+                  <div className="overflow-x-auto p-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left">
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Tham số
+                          </th>
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Kiểu
+                          </th>
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Mô tả
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chatEndpoint.params.map((p) => (
+                          <ParamRow
+                            key={p.name}
+                            name={p.name}
+                            type={p.type}
+                            required={p.required}
+                            desc={p.description}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="p-4 overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Tham số</th>
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Kiểu</th>
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Mô tả</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <ParamRow name="model" type="string" required desc="Tên model (xem /v1/models để biết danh sách)" />
-                      <ParamRow name="messages" type="array" required desc="Mảng tin nhắn [{ role, content }]. role: system | user | assistant" />
-                      <ParamRow name="stream" type="boolean" desc="Bật SSE streaming (mặc định: false)" />
-                      <ParamRow name="temperature" type="number" desc="Độ ngẫu nhiên 0–2 (mặc định: 1). Thấp hơn = xác định hơn." />
-                      <ParamRow name="max_tokens" type="integer" desc="Số token tối đa trong response" />
-                      <ParamRow name="top_p" type="number" desc="Nucleus sampling 0–1 (mặc định: 1)" />
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
 
               <SubSection id="chat-basic" title="Non-streaming">
                 <p className="text-sm text-muted-foreground">
-                  Gửi request và nhận toàn bộ response sau khi model hoàn thành. Phù hợp cho task không cần real-time.
+                  Gửi request và nhận toàn bộ response sau khi model hoàn thành.
+                  Phù hợp cho task không cần real-time.
                 </p>
                 <CodeBlock tabs={CHAT_BASIC_CODE} />
 
-                <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Response format</p>
+                <div className="space-y-3 rounded-xl border border-border bg-background-secondary p-5">
+                  <p className="text-sm font-medium text-foreground">
+                    Response format
+                  </p>
                   <CodeBlock
-                    tabs={[{
-                      label: "JSON",
-                      code: `{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "chatcmpl-...",
-    "model": "gemini-2.5-flash",
-    "choices": [{
-      "message": { "content": "Xin chào! Tôi có thể giúp gì?", "role": "assistant" },
-      "finish_reason": "stop",
-      "index": 0
-    }],
-    "usage": {
-      "prompt_tokens": 10,
-      "completion_tokens": 50,
-      "total_tokens": 60
-    },
-    "cost": { "vnd": 1.5 }
-  }
-}`,
-                    }]}
+                    tabs={[
+                      { label: "JSON", code: CHAT_RESPONSE_EXAMPLE },
+                    ]}
                   />
                 </div>
               </SubSection>
 
               <SubSection id="chat-stream" title="Streaming (SSE)">
                 <p className="text-sm text-muted-foreground">
-                  Nhận token theo thời gian thực qua Server-Sent Events. Giảm perceived latency đáng kể, giống ChatGPT.
-                  Đặt <InlineCode>stream: true</InlineCode> trong request body.
+                  Nhận token theo thời gian thực qua Server-Sent Events. Giảm
+                  perceived latency đáng kể, giống ChatGPT. Đặt{" "}
+                  <InlineCode>stream: true</InlineCode> trong request body.
                 </p>
                 <CodeBlock tabs={CHAT_STREAM_CODE} />
 
-                <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Streaming SSE format</p>
+                <div className="space-y-3 rounded-xl border border-border bg-background-secondary p-5">
+                  <p className="text-sm font-medium text-foreground">
+                    Streaming SSE format
+                  </p>
                   <CodeBlock
-                    tabs={[{
-                      label: "SSE",
-                      code: `data: {"id":"chatcmpl-...","choices":[{"delta":{"content":"Xin"},"index":0}]}
-
-data: {"id":"chatcmpl-...","choices":[{"delta":{"content":" chào"},"index":0}]}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":50}}
-
-data: {"cost":{"vnd":1.5,"promptTokens":10,"completionTokens":50}}
-
-data: [DONE]`,
-                    }]}
+                    tabs={[
+                      { label: "SSE", code: CHAT_STREAM_RESPONSE_EXAMPLE },
+                    ]}
                   />
                 </div>
               </SubSection>
@@ -703,111 +275,122 @@ data: [DONE]`,
             {/* ── Image Generation ── */}
             <Section id="image" icon={ImageIcon} title="Image Generation">
               <p className="text-muted-foreground">
-                Tạo ảnh từ prompt văn bản. Response trả về URL ảnh trực tiếp. Thời gian tạo ảnh thường 10–60 giây tùy model.
+                Tạo ảnh từ prompt văn bản. Response trả về URL ảnh trực tiếp.
+                Thời gian tạo ảnh thường 10–60 giây tùy model.
               </p>
 
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">POST</span>
-                  <code className="text-sm font-mono text-foreground">/v1/images/generations</code>
-                </div>
-                <div className="p-4 overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Tham số</th>
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Kiểu</th>
-                        <th className="pb-2 text-xs font-medium text-muted-foreground">Mô tả</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <ParamRow name="model" type="string" required desc="Model ID (xem bảng Image Models bên dưới)" />
-                      <ParamRow name="prompt" type="string" required desc="Mô tả hình ảnh muốn tạo" />
-                      <ParamRow name="resolution" type="string" desc='Độ phân giải ảnh: "1K", "2K", "4K". Mặc định: độ phân giải nhỏ nhất có sẵn. Chỉ áp dụng cho nano-banana models.' />
-                      <ParamRow name="aspect_ratio" type="string" desc="Tỷ lệ ảnh: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3. Mặc định: 1:1" />
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <SubSection id="image-basic" title="Tạo ảnh">
-                <p className="text-sm text-muted-foreground">
-                  Gửi prompt mô tả hình ảnh và nhận URL ảnh. Lưu ý đặt timeout {'>='} 150 giây vì quá trình tạo ảnh có thể mất thời gian.
-                </p>
-                <CodeBlock tabs={IMAGE_BASIC_CODE} />
-
-                <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Response format</p>
-                  <CodeBlock
-                    tabs={[{
-                      label: "JSON",
-                      code: `{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "created": 1774234991,
-    "data": [
-      { "url": "https://tempfile...", "revised_prompt": "a cute cat", "b64_json": null }
-    ]
-  }
-}`,
-                    }]}
+              {imageEndpoint && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <EndpointHeader
+                    method={imageEndpoint.method}
+                    path={imageEndpoint.path}
                   />
-                </div>
-
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
-                  <p className="text-sm font-medium text-amber-400">Lưu ý quan trọng</p>
-                  <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-                    <li>URL ảnh là <strong>tạm thời</strong> — tải về và lưu trữ riêng nếu cần dùng lâu dài.</li>
-                    <li>Image models cũng hoạt động qua <InlineCode>/v1/chat/completions</InlineCode> — hệ thống tự nhận diện image model.</li>
-                    <li>Số dư bị trừ <strong>sau khi</strong> ảnh tạo thành công, không trừ nếu thất bại.</li>
-                  </ul>
-                </div>
-
-                <CodeBlock tabs={IMAGE_COMPLETIONS_CODE} />
-              </SubSection>
-
-              <SubSection id="image-models" title="Image Models">
-                <p className="text-sm text-muted-foreground">
-                  Độ phân giải được chọn qua tham số <InlineCode>resolution</InlineCode> (ví dụ: <InlineCode>{`"resolution": "2K"`}</InlineCode>). Chỉ áp dụng cho nano-banana models.
-                </p>
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-border bg-background-secondary">
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Resolution</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giá/ảnh (VND)</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Tỉ lệ hỗ trợ</th>
-                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Ghi chú</th>
+                        <tr className="border-b border-border text-left">
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Tham số
+                          </th>
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Kiểu
+                          </th>
+                          <th className="pb-2 text-xs font-medium text-muted-foreground">
+                            Mô tả
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {[
-                          { id: "nano-banana-2", res: "1K", price: "1,040", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, chất lượng cơ bản" },
-                          { id: "nano-banana-2", res: "2K", price: "1,560", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, chất lượng tốt" },
-                          { id: "nano-banana-2", res: "4K", price: "2,340", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Nhanh, chất lượng cao" },
-                          { id: "nano-banana-pro", res: "2K", price: "2,340", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Chất lượng cao" },
-                          { id: "nano-banana-pro", res: "4K", price: "3,120", ratios: "1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3", note: "Chất lượng rất cao" },
-                          { id: "grok-imagine-t2i", res: "\u2014", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Text-to-image, trả nhiều ảnh" },
-                          { id: "grok-imagine-i2i", res: "\u2014", price: "520", ratios: "1:1, 16:9, 9:16, 4:3, 3:4", note: "Image-to-image" },
-                          { id: "midjourney-relaxed", res: "\u2014", price: "~390", ratios: "Coming soon", note: "Sắp ra mắt — chậm, rẻ nhất" },
-                          { id: "midjourney-fast", res: "\u2014", price: "~1,040", ratios: "Coming soon", note: "Sắp ra mắt — tốc độ trung bình" },
-                          { id: "midjourney-turbo", res: "\u2014", price: "~2,080", ratios: "Coming soon", note: "Sắp ra mắt — nhanh nhất" },
-                        ].map((m, i) => (
-                          <tr key={`${m.id}-${m.res}-${i}`} className="border-b border-border last:border-0">
-                            <td className="px-4 py-3"><InlineCode>{m.id}</InlineCode></td>
-                            <td className="px-4 py-3 text-muted-foreground">{m.res}</td>
-                            <td className="px-4 py-3 text-muted-foreground">{m.price}đ</td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">{m.ratios}</td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">{m.note}</td>
-                          </tr>
+                        {imageEndpoint.params.map((p) => (
+                          <ParamRow
+                            key={p.name}
+                            name={p.name}
+                            type={p.type}
+                            required={p.required}
+                            desc={p.description}
+                          />
                         ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
+              )}
+
+              <SubSection id="image-basic" title="Tạo ảnh">
+                <p className="text-sm text-muted-foreground">
+                  Gửi prompt mô tả hình ảnh và nhận URL ảnh. Lưu ý đặt timeout
+                  {" >= "}150 giây vì quá trình tạo ảnh có thể mất thời gian.
+                </p>
+                <CodeBlock tabs={IMAGE_BASIC_CODE} />
+
+                <div className="space-y-3 rounded-xl border border-border bg-background-secondary p-5">
+                  <p className="text-sm font-medium text-foreground">
+                    Response format
+                  </p>
+                  <CodeBlock
+                    tabs={[
+                      { label: "JSON", code: IMAGE_RESPONSE_EXAMPLE },
+                    ]}
+                  />
+                </div>
+
+                <NoteBox title="Lưu ý quan trọng">
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                    {IMAGE_NOTES.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </NoteBox>
+              </SubSection>
+
+              <SubSection id="image-models" title="Image Models">
+                <p className="text-sm text-muted-foreground">
+                  Độ phân giải được chọn qua tham số{" "}
+                  <InlineCode>resolution</InlineCode> (ví dụ:{" "}
+                  <InlineCode>{`"resolution": "2K"`}</InlineCode>). Chỉ áp dụng
+                  cho nano-banana models.
+                </p>
+                {imagePricing && imagePricing.models.length > 0 && (
+                  <div className="overflow-hidden rounded-xl border border-border">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border bg-background-secondary">
+                            <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                              Model ID
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                              Đơn vị
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                              Giá (VND)
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {imagePricing.models.flatMap((model) =>
+                            model.prices.map((tier, i) => (
+                              <tr
+                                key={`${model.slug}-${i}`}
+                                className="border-b border-border last:border-0"
+                              >
+                                <td className="px-4 py-3">
+                                  <InlineCode>{model.slug}</InlineCode>
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                  {tier.unit}
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                  {formatVnd(tier.inputPrice)}đ
+                                </td>
+                              </tr>
+                            )),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </SubSection>
             </Section>
 
@@ -816,142 +399,168 @@ data: [DONE]`,
               <p className="text-muted-foreground">
                 Lấy danh sách tất cả model đang hoạt động từ hệ thống.
               </p>
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-bold text-blue-400">GET</span>
-                  <code className="text-sm font-mono text-foreground">/v1/models</code>
+              {docs?.endpoints.find((e) => e.path === "/v1/models") && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <EndpointHeader method="GET" path="/v1/models" />
+                  <div className="p-4 text-sm text-muted-foreground">
+                    Trả về mảng <InlineCode>data[]</InlineCode> với các model
+                    đang khả dụng. Dùng field <InlineCode>id</InlineCode> làm
+                    giá trị cho tham số <InlineCode>model</InlineCode>.
+                  </div>
                 </div>
-                <div className="p-4 text-sm text-muted-foreground">
-                  Trả về mảng <InlineCode>data[]</InlineCode> với các model đang khả dụng.
-                  Dùng field <InlineCode>id</InlineCode> làm giá trị cho tham số <InlineCode>model</InlineCode>.
-                </div>
-              </div>
+              )}
               <CodeBlock tabs={MODELS_CODE} />
 
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
-                <p className="text-sm font-medium text-amber-400">Lưu ý</p>
+              <NoteBox title="Lưu ý">
                 <p className="text-sm text-muted-foreground">
-                  Field <InlineCode>owned_by</InlineCode> trong response hiện trả giá trị mặc định, không phản ánh provider thực tế. Dùng <InlineCode>id</InlineCode> để xác định model.
+                  Field <InlineCode>owned_by</InlineCode> trong response hiện
+                  trả giá trị mặc định, không phản ánh provider thực tế. Dùng{" "}
+                  <InlineCode>id</InlineCode> để xác định model.
                 </p>
-              </div>
+              </NoteBox>
 
-              {/* Model list table */}
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="bg-background-secondary px-4 py-3 border-b border-border">
-                  <p className="text-sm font-medium text-foreground">Chat Models</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-background-secondary">
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Model ID</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Loại</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Input (VND/1M tokens)</th>
-                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Output (VND/1M tokens)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { id: "gpt-oss-120b", type: "Chat", input: "806", output: "2,080" },
-                        { id: "gemini-2.5-flash", type: "Chat", input: "2,808", output: "23,400" },
-                        { id: "bytedance-seed-code", type: "Code", input: "3,536", output: "22,880" },
-                        { id: "gemini-3-flash", type: "Chat", input: "4,680", output: "28,080" },
-                        { id: "deepseek-v3.2", type: "Chat \u2014 Coming soon", input: "5,824", output: "8,736" },
-                        { id: "kimi-k2-thinking", type: "Reasoning", input: "9,776", output: "41,600" },
-                        { id: "gemini-2.5-pro", type: "Chat", input: "11,856", output: "93,600" },
-                        { id: "kimi-k2.5", type: "Chat", input: "12,480", output: "62,400" },
-                        { id: "glm-4.7", type: "Chat", input: "12,480", output: "45,760" },
-                        { id: "gpt-5-4", type: "Chat \u2014 Coming soon", input: "13,728", output: "109,200" },
-                        { id: "gemini-3-pro", type: "Chat", input: "15,600", output: "109,200" },
-                        { id: "gemini-3.1-pro", type: "Chat", input: "15,600", output: "109,200" },
-                        { id: "claude-sonnet-4-5", type: "Chat", input: "31,200", output: "93,600" },
-                        { id: "openai-codex", type: "Code", input: "78,000", output: "156,000" },
-                        { id: "claude-opus-4-5", type: "Chat", input: "93,600", output: "156,000" },
-                      ].map((m) => (
-                        <tr key={m.id} className="border-b border-border last:border-0">
-                          <td className="px-4 py-3">
-                            <InlineCode>{m.id}</InlineCode>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.type}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.input}đ</td>
-                          <td className="px-4 py-3 text-muted-foreground">{m.output}{m.output !== "\u2014" ? "đ" : ""}</td>
+              {/* Chat models pricing from DB */}
+              {chatPricing && chatPricing.models.length > 0 && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <div className="border-b border-border bg-background-secondary px-4 py-3">
+                    <p className="text-sm font-medium text-foreground">
+                      Chat Models
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-background-secondary">
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                            Model ID
+                          </th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                            Input (VND/1M tokens)
+                          </th>
+                          <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                            Output (VND/1M tokens)
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {chatPricing.models.map((model) => {
+                          const tier = model.prices[0];
+                          if (!tier) return null;
+                          return (
+                            <tr
+                              key={model.slug}
+                              className="border-b border-border last:border-0"
+                            >
+                              <td className="px-4 py-3">
+                                <InlineCode>{model.slug}</InlineCode>
+                              </td>
+                              <td className="px-4 py-3 text-muted-foreground">
+                                {formatVnd(tier.inputPrice)}đ
+                              </td>
+                              <td className="px-4 py-3 text-muted-foreground">
+                                {tier.outputPrice
+                                  ? `${formatVnd(tier.outputPrice)}đ`
+                                  : "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
             </Section>
 
             {/* ── Rate Limits ── */}
             <Section id="rate-limits" icon={Gauge} title="Rate Limits">
               <p className="text-muted-foreground">
-                Mỗi API key có giới hạn sử dụng để đảm bảo chất lượng dịch vụ cho tất cả người dùng.
+                Mỗi API key có giới hạn sử dụng để đảm bảo chất lượng dịch vụ
+                cho tất cả người dùng.
               </p>
 
-              <div className="rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-background-secondary">
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giới hạn</th>
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Giá trị</th>
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Mô tả</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-medium">RPM</td>
-                      <td className="px-4 py-3 font-mono text-sm">60</td>
-                      <td className="px-4 py-3 text-muted-foreground">Số request tối đa mỗi phút</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-medium">TPM</td>
-                      <td className="px-4 py-3 font-mono text-sm">100,000</td>
-                      <td className="px-4 py-3 text-muted-foreground">Số tokens tối đa mỗi phút</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-medium">Đồng thời</td>
-                      <td className="px-4 py-3 font-mono text-sm">10</td>
-                      <td className="px-4 py-3 text-muted-foreground">Số request chạy song song tối đa</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 font-medium">Budget</td>
-                      <td className="px-4 py-3 font-mono text-sm">50,000đ / 30 ngày</td>
-                      <td className="px-4 py-3 text-muted-foreground">Ngân sách tối đa mỗi chu kỳ</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {docs?.rateLimits && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-background-secondary">
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Giới hạn
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Giá trị
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Mô tả
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      <tr className="border-b border-border">
+                        <td className="px-4 py-3 font-medium">RPM</td>
+                        <td className="px-4 py-3 font-mono text-sm">
+                          {docs.rateLimits.rpm.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          Số request tối đa mỗi phút
+                        </td>
+                      </tr>
+                      <tr className="border-b border-border">
+                        <td className="px-4 py-3 font-medium">TPM</td>
+                        <td className="px-4 py-3 font-mono text-sm">
+                          {docs.rateLimits.tpm.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          Số tokens tối đa mỗi phút
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 font-medium">Đồng thời</td>
+                        <td className="px-4 py-3 font-mono text-sm">
+                          {docs.rateLimits.maxParallelRequests}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          Số request chạy song song tối đa
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               <SubSection id="rate-limits-429" title="Khi vượt giới hạn">
                 <p className="text-muted-foreground">
-                  Khi vượt giới hạn, API trả về HTTP <code className="rounded bg-muted px-1.5 py-0.5 text-sm font-mono">429</code> với các headers:
+                  Khi vượt giới hạn, API trả về HTTP{" "}
+                  <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
+                    429
+                  </code>{" "}
+                  với các headers:
                 </p>
                 <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">retry-after</code> — số giây cần chờ trước khi gửi lại</li>
-                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">x-ratelimit-remaining-requests</code> — số request còn lại trong chu kỳ</li>
-                  <li><code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">x-ratelimit-remaining-tokens</code> — số tokens còn lại trong chu kỳ</li>
+                  {RATE_LIMIT_HEADERS.map((h) => (
+                    <li key={h.header}>
+                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+                        {h.header}
+                      </code>{" "}
+                      — {h.desc}
+                    </li>
+                  ))}
                 </ul>
                 <CodeBlock
-                  tabs={[{
-                    label: "JSON",
-                    code: `{
-  "error": {
-    "message": "Bạn đã vượt quá giới hạn request. Vui lòng thử lại sau.",
-    "type": "rate_limit_error",
-    "code": 429
-  }
-}`,
-                  }]}
+                  tabs={[
+                    { label: "JSON", code: RATE_LIMIT_ERROR_EXAMPLE },
+                  ]}
                 />
               </SubSection>
 
-              <SubSection id="rate-limits-best-practices" title="Best practices">
+              <SubSection
+                id="rate-limits-best-practices"
+                title="Best practices"
+              >
                 <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  <li>Thêm exponential backoff khi gặp lỗi 429</li>
-                  <li>Đọc header <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">retry-after</code> để biết thời gian chờ chính xác</li>
-                  <li>Tránh gửi nhiều request lớn cùng lúc — chia nhỏ và xử lý tuần tự</li>
-                  <li>Cache kết quả khi có thể để giảm số lượng request</li>
+                  {RATE_LIMIT_BEST_PRACTICES.map((tip) => (
+                    <li key={tip}>{tip}</li>
+                  ))}
                 </ul>
               </SubSection>
             </Section>
@@ -959,62 +568,47 @@ data: [DONE]`,
             {/* ── Errors ── */}
             <Section id="errors" icon={AlertCircle} title="Lỗi & Giới hạn">
               <p className="text-muted-foreground">
-                API trả về HTTP status code chuẩn. Xử lý lỗi theo bảng bên dưới.
+                API trả về HTTP status code chuẩn. Xử lý lỗi theo bảng bên
+                dưới.
               </p>
-              <div className="rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-background-secondary">
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Code</th>
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Tên lỗi</th>
-                      <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Nguyên nhân</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border px-4">
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-mono text-sm">400</td>
-                      <td className="px-4 py-3 font-medium">Bad Request</td>
-                      <td className="px-4 py-3 text-muted-foreground">Thiếu tham số bắt buộc (model, messages)</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-mono text-sm">401</td>
-                      <td className="px-4 py-3 font-medium">Unauthorized</td>
-                      <td className="px-4 py-3 text-muted-foreground">API key không hợp lệ hoặc đã bị thu hồi</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-mono text-sm">402</td>
-                      <td className="px-4 py-3 font-medium">Insufficient Credits</td>
-                      <td className="px-4 py-3 text-muted-foreground">Số dư không đủ, cần nạp thêm</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-mono text-sm">408</td>
-                      <td className="px-4 py-3 font-medium">Request Timeout</td>
-                      <td className="px-4 py-3 text-muted-foreground">Tạo ảnh/video vượt quá thời gian cho phép (300s)</td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="px-4 py-3 font-mono text-sm">429</td>
-                      <td className="px-4 py-3 font-medium">Too Many Requests</td>
-                      <td className="px-4 py-3 text-muted-foreground">Vượt rate limit, thử lại sau vài giây</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 font-mono text-sm">502</td>
-                      <td className="px-4 py-3 font-medium">Bad Gateway</td>
-                      <td className="px-4 py-3 text-muted-foreground">AI provider gặp sự cố, thử lại sau</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {docs?.errorCodes && (
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-background-secondary">
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Code
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Tên lỗi
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">
+                          Nguyên nhân
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border px-4">
+                      {docs.errorCodes.map((err) => (
+                        <ErrorRow
+                          key={err.code}
+                          code={err.code}
+                          name={err.name}
+                          desc={err.description}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-              <div className="rounded-xl border border-border bg-background-secondary p-5 space-y-2">
-                <p className="text-sm font-medium text-foreground">Format response lỗi</p>
+              <div className="space-y-2 rounded-xl border border-border bg-background-secondary p-5">
+                <p className="text-sm font-medium text-foreground">
+                  Format response lỗi
+                </p>
                 <CodeBlock
-                  tabs={[{
-                    label: "JSON",
-                    code: `{
-  "success": false,
-  "message": "Số dư không đủ. Số dư hiện tại: 0đ"
-}`,
-                  }]}
+                  tabs={[
+                    { label: "JSON", code: ERROR_RESPONSE_EXAMPLE },
+                  ]}
                 />
               </div>
             </Section>
@@ -1022,35 +616,34 @@ data: [DONE]`,
             {/* ── Billing & Usage ── */}
             <Section id="billing" icon={DollarSign} title="Billing & Usage">
               <p className="text-muted-foreground">
-                Kiểm tra số dư và lịch sử sử dụng qua các endpoint sau. Lưu ý: các endpoint này sử dụng cookie authentication (đăng nhập website), không dùng API key Bearer auth.
+                Kiểm tra số dư và lịch sử sử dụng qua các endpoint sau. Lưu ý:
+                các endpoint này sử dụng cookie authentication (đăng nhập
+                website), không dùng API key Bearer auth.
               </p>
 
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-bold text-blue-400">GET</span>
-                  <code className="text-sm font-mono text-foreground">/api/billing/balance</code>
-                </div>
+              <div className="overflow-hidden rounded-xl border border-border">
+                <EndpointHeader method="GET" path="/api/billing/balance" />
                 <div className="p-4 text-sm text-muted-foreground">
-                  Trả về số dư hiện tại của tài khoản (VND). Yêu cầu cookie auth (đăng nhập trên website).
+                  Trả về số dư hiện tại của tài khoản (VND). Yêu cầu cookie
+                  auth (đăng nhập trên website).
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="flex items-center gap-3 bg-background-secondary px-4 py-3 border-b border-border">
-                  <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-bold text-blue-400">GET</span>
-                  <code className="text-sm font-mono text-foreground">/api/logs/usage</code>
-                </div>
+              <div className="overflow-hidden rounded-xl border border-border">
+                <EndpointHeader method="GET" path="/api/logs/usage" />
                 <div className="p-4 text-sm text-muted-foreground">
-                  Trả về lịch sử sử dụng API (tokens, chi phí). Yêu cầu cookie auth (đăng nhập trên website).
+                  Trả về lịch sử sử dụng API (tokens, chi phí). Yêu cầu cookie
+                  auth (đăng nhập trên website).
                 </div>
               </div>
 
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
-                <p className="text-sm font-medium text-amber-400">Lưu ý</p>
+              <NoteBox title="Lưu ý">
                 <p className="text-sm text-muted-foreground">
-                  Các endpoint billing/usage chỉ hoạt động khi bạn đã đăng nhập trên website operis.vn. Không hỗ trợ xác thực bằng API key Bearer token.
+                  Các endpoint billing/usage chỉ hoạt động khi bạn đã đăng nhập
+                  trên website operis.vn. Không hỗ trợ xác thực bằng API key
+                  Bearer token.
                 </p>
-              </div>
+              </NoteBox>
             </Section>
 
             {/* ── Examples ── */}
@@ -1060,13 +653,13 @@ data: [DONE]`,
               </p>
               <CodeBlock tabs={EXAMPLE_CHATBOT_CODE} />
               <p className="text-sm text-muted-foreground">
-                Xem thêm ví dụ về image generation, function calling và multi-modal tại trang{" "}
-                <Link href="/playground" className="text-primary hover:underline">
-                  Playground
-                </Link>.
+                Xem thêm ví dụ về image generation và multi-modal tại trang{" "}
+                <Link href="/market" className="text-primary hover:underline">
+                  Market
+                </Link>
+                .
               </p>
             </Section>
-
           </main>
         </div>
       </div>
