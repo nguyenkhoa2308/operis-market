@@ -39,7 +39,6 @@ export const pricingModels: PricingModel[] = [
   { id: "gemini-2.5-pro", model: "Gemini 2.5 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.456, outputPrice: 3.60, inputOfficial: 1.25, outputOfficial: 10.00 },
   { id: "gemini-3-flash", model: "Gemini 3 Flash", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.18, outputPrice: 1.08, inputOfficial: 0.50, outputOfficial: 3.00 },
   { id: "gemini-3-pro", model: "Gemini 3 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
-  { id: "gemini-3.1-pro", model: "Gemini 3.1 Pro", category: "chat", provider: "Google", unit: "1M tokens", inputPrice: 0.60, outputPrice: 4.20, inputOfficial: 2.00, outputOfficial: 12.00 },
   // ── Anthropic ──
   { id: "claude-sonnet-4-5", model: "Claude Sonnet 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 1.20, outputPrice: 3.60, inputOfficial: 3.00, outputOfficial: 15.00 },
   { id: "claude-opus-4-5", model: "Claude Opus 4.5", category: "chat", provider: "Anthropic", unit: "1M tokens", inputPrice: 3.60, outputPrice: 6.00, inputOfficial: 5.00, outputOfficial: 25.00 },
