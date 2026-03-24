@@ -219,9 +219,22 @@ function PlaygroundTab({
           slug,
           category as "image" | "video" | "music" | "chat",
         );
+
+  // Remove resolution options that don't have a matching pricing tier
+  const tierNames = pricingTiers?.map((t) => t.name) ?? [];
+  const filteredFields =
+    tierNames.length > 0
+      ? fields.map((f) => {
+          if (f.name !== "resolution" || !f.options) return f;
+          const filtered = f.options.filter((o) => tierNames.includes(o.value));
+          if (filtered.length === 0) return f;
+          return { ...f, options: filtered, defaultValue: filtered[0]?.value ?? f.defaultValue };
+        })
+      : fields;
+
   const [formValues, setFormValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    fields.forEach((f) => {
+    filteredFields.forEach((f) => {
       if (f.defaultValue) init[f.name] = f.defaultValue;
     });
     return init;
@@ -253,7 +266,12 @@ function PlaygroundTab({
           : "text";
 
   // Use shared USD_TO_VND from pricing-constants
-  const tier = pricingTiers?.[0];
+  // For image models, match tier by resolution (tier.name = "1K"/"2K"/"4K")
+  const selectedResolution = formValues.resolution;
+  const tier =
+    pricingTiers && selectedResolution
+      ? pricingTiers.find((t) => t.name === selectedResolution) ?? pricingTiers[0]
+      : pricingTiers?.[0];
   const priceLabel = tier
     ? `${Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
     : category === "image"
@@ -322,7 +340,7 @@ function PlaygroundTab({
 
         {inputMode === "form" ? (
           <div className="space-y-6">
-            {fields.map((field) => (
+            {filteredFields.map((field) => (
               <div key={field.name}>
                 <label className="mb-1.5 block text-sm font-semibold text-foreground">
                   {field.label}
@@ -445,7 +463,7 @@ function PlaygroundTab({
                 type="button"
                 onClick={() => {
                   const init: Record<string, string> = {};
-                  fields.forEach((f) => {
+                  filteredFields.forEach((f) => {
                     if (f.defaultValue) init[f.name] = f.defaultValue;
                   });
                   setFormValues(init);
