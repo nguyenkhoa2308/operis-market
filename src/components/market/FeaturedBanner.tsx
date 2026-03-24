@@ -10,9 +10,10 @@ import BannerSlide from "./BannerSlide";
 export default function FeaturedBanner() {
   const { data: featuredSlides = [], isLoading } = useFeaturedModels();
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 8000, stopOnInteraction: true, stopOnMouseEnter: true }),
-  ]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, duration: 30 },
+    [Autoplay({ delay: 8000, stopOnInteraction: false, stopOnMouseEnter: true })],
+  );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -41,7 +42,7 @@ export default function FeaturedBanner() {
 
   if (isLoading) {
     return (
-      <div className="h-[220px] animate-pulse rounded-xl bg-accent sm:h-[260px] md:h-[300px]" />
+      <div className="h-[400px] animate-pulse rounded-xl bg-accent sm:h-[300px] md:h-[340px]" />
     );
   }
 
@@ -55,7 +56,7 @@ export default function FeaturedBanner() {
           {featuredSlides.map((slide) => (
             <div
               key={slide.id}
-              className="h-[220px] w-full shrink-0 grow-0 basis-full sm:h-[260px] md:h-[300px]"
+              className="h-[400px] w-full shrink-0 grow-0 basis-full sm:h-[300px] md:h-[340px]"
             >
               <BannerSlide slide={slide} />
             </div>
