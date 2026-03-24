@@ -42,7 +42,7 @@ export function useApiDocs() {
   return useQuery<ApiDocsReference>({
     queryKey: ["api-docs-reference"],
     queryFn: async () => {
-      const res = await api.get("/docs/reference");
+      const res = await api.get("/api-reference/reference");
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
