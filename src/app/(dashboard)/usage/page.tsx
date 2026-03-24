@@ -2,7 +2,15 @@
 
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { TrendingUp, Activity, Key, BarChart3, Shield, Zap, Calendar } from "lucide-react";
+import {
+  TrendingUp,
+  Activity,
+  Key,
+  BarChart3,
+  Shield,
+  Zap,
+  Calendar,
+} from "lucide-react";
 import { useAccountUsage, useKeyUsage } from "@/hooks/use-logs";
 
 const UsageBarChart = dynamic(
@@ -80,7 +88,7 @@ function getDefaultDates() {
 }
 
 function PerAccountTab() {
-  const defaults = useMemo(getDefaultDates, []);
+  const defaults = useMemo(() => getDefaultDates(), []);
   const [startDate, setStartDate] = useState(defaults.from);
   const [endDate, setEndDate] = useState(defaults.to);
   const { data, isLoading } = useAccountUsage(startDate, endDate);
@@ -112,6 +120,7 @@ function PerAccountTab() {
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+          title="Chọn ngày bắt đầu"
         />
         <span className="text-sm text-muted-foreground">—</span>
         <input
@@ -119,6 +128,7 @@ function PerAccountTab() {
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+          title="Chọn ngày tới"
         />
       </div>
 
@@ -137,9 +147,19 @@ function PerAccountTab() {
       {/* Charts row: Daily Cost + Model Pie */}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border p-4 sm:p-6">
-          <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phi hang ngay (VND)</h3>
+          <h3 className="mb-4 text-sm font-semibold text-foreground">
+            Chi phi hang ngay (VND)
+          </h3>
           {dailyUsage.length > 0 ? (
-            <UsageBarChart data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0, requests: d.requests }))} mode="costVnd" />
+            <UsageBarChart
+              data={dailyUsage.map((d) => ({
+                date: d.date,
+                costVnd: d.costVnd,
+                spend: 0,
+                requests: d.requests,
+              }))}
+              mode="costVnd"
+            />
           ) : (
             <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
               No usage data yet
@@ -148,9 +168,16 @@ function PerAccountTab() {
         </div>
 
         <div className="rounded-xl border border-border p-4 sm:p-6">
-          <h3 className="mb-4 text-sm font-semibold text-foreground">Chi phi theo Model</h3>
+          <h3 className="mb-4 text-sm font-semibold text-foreground">
+            Chi phi theo Model
+          </h3>
           {modelUsage.length > 0 ? (
-            <ModelPieChart data={modelUsage.map((m) => ({ name: m.model, value: m.costVnd }))} />
+            <ModelPieChart
+              data={modelUsage.map((m) => ({
+                name: m.model,
+                value: m.costVnd,
+              }))}
+            />
           ) : (
             <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
               No model usage yet
@@ -161,10 +188,17 @@ function PerAccountTab() {
 
       {/* Daily Request Count Chart */}
       <div className="rounded-xl border border-border p-4 sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Requests hang ngay</h3>
+        <h3 className="mb-4 text-sm font-semibold text-foreground">
+          Requests hang ngay
+        </h3>
         {dailyUsage.length > 0 ? (
           <UsageBarChart
-            data={dailyUsage.map((d) => ({ date: d.date, costVnd: d.costVnd, spend: 0, requests: d.requests }))}
+            data={dailyUsage.map((d) => ({
+              date: d.date,
+              costVnd: d.costVnd,
+              spend: 0,
+              requests: d.requests,
+            }))}
             mode="requests"
             height={200}
           />
@@ -177,7 +211,9 @@ function PerAccountTab() {
 
       {/* Model Breakdown Table */}
       <div className="rounded-xl border border-border p-4 sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Breakdown by Model</h3>
+        <h3 className="mb-4 text-sm font-semibold text-foreground">
+          Breakdown by Model
+        </h3>
         {modelUsage.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -186,7 +222,9 @@ function PerAccountTab() {
                   <th className="pb-2 text-left font-medium">Model</th>
                   <th className="pb-2 text-right font-medium">Requests</th>
                   <th className="pb-2 text-right font-medium">Prompt Tokens</th>
-                  <th className="pb-2 text-right font-medium">Completion Tokens</th>
+                  <th className="pb-2 text-right font-medium">
+                    Completion Tokens
+                  </th>
                   <th className="pb-2 text-right font-medium">Token Ratio</th>
                   <th className="pb-2 text-right font-medium">Avg Cost</th>
                   <th className="pb-2 text-right font-medium">Chi phi (VND)</th>
@@ -195,31 +233,54 @@ function PerAccountTab() {
               <tbody>
                 {modelUsage.map((m) => {
                   const totalTokens = m.promptTokens + m.completionTokens;
-                  const promptPct = totalTokens > 0 ? (m.promptTokens / totalTokens) * 100 : 0;
-                  const avgModelCost = m.requests > 0 ? m.costVnd / m.requests : 0;
+                  const promptPct =
+                    totalTokens > 0 ? (m.promptTokens / totalTokens) * 100 : 0;
+                  const avgModelCost =
+                    m.requests > 0 ? m.costVnd / m.requests : 0;
 
                   return (
-                    <tr key={m.model} className="border-b border-border/50 last:border-0">
-                      <td className="py-2.5 font-mono text-xs text-foreground/80">{m.model}</td>
-                      <td className="py-2.5 text-right text-foreground/80">{m.requests.toLocaleString()}</td>
-                      <td className="py-2.5 text-right text-foreground/80">{m.promptTokens.toLocaleString()}</td>
-                      <td className="py-2.5 text-right text-foreground/80">{m.completionTokens.toLocaleString()}</td>
+                    <tr
+                      key={m.model}
+                      className="border-b border-border/50 last:border-0"
+                    >
+                      <td className="py-2.5 font-mono text-xs text-foreground/80">
+                        {m.model}
+                      </td>
+                      <td className="py-2.5 text-right text-foreground/80">
+                        {m.requests.toLocaleString()}
+                      </td>
+                      <td className="py-2.5 text-right text-foreground/80">
+                        {m.promptTokens.toLocaleString()}
+                      </td>
+                      <td className="py-2.5 text-right text-foreground/80">
+                        {m.completionTokens.toLocaleString()}
+                      </td>
                       <td className="py-2.5 text-right">
                         {totalTokens > 0 ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-                              <div className="h-full rounded-full bg-blue-500" style={{ width: `${promptPct}%` }} />
+                              <div
+                                className="h-full rounded-full bg-blue-500"
+                                style={{ width: `${promptPct}%` }}
+                              />
                             </div>
-                            <span className="text-[10px] text-muted-foreground">{promptPct.toFixed(0)}%</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {promptPct.toFixed(0)}%
+                            </span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="py-2.5 text-right text-foreground/60">
-                        {avgModelCost.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}d
+                        {avgModelCost.toLocaleString("vi-VN", {
+                          maximumFractionDigits: 2,
+                        })}
+                        d
                       </td>
-                      <td className="py-2.5 text-right font-medium text-foreground">{m.costVnd.toLocaleString("vi-VN")}d</td>
+                      <td className="py-2.5 text-right font-medium text-foreground">
+                        {m.costVnd.toLocaleString("vi-VN")}d
+                      </td>
                     </tr>
                   );
                 })}
@@ -227,7 +288,9 @@ function PerAccountTab() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No model usage recorded yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No model usage recorded yet.
+          </p>
         )}
       </div>
     </div>
@@ -341,7 +404,9 @@ export default function ApiUsagePage() {
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:pt-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-foreground md:text-3xl">API Usage</h1>
+        <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+          API Usage
+        </h1>
       </div>
 
       <div className="mb-6 border-b border-border">

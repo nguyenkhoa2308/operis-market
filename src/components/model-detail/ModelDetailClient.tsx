@@ -18,7 +18,10 @@ import {
   Info,
   ChevronRight,
   Loader2,
+  Download,
+  History,
 } from "lucide-react";
+import { AxiosError } from "axios";
 import type { ModelDetail, ModelPlaygroundField } from "@/types/market";
 import { useModelDetail } from "@/hooks/use-models";
 import { Switch } from "@/components/ui/switch";
@@ -70,7 +73,10 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col h-[500px]">
       {/* Messages */}
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
         {messages.length === 0 && !isStreaming && (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
             Gửi tin nhắn để bắt đầu thử model
@@ -122,7 +128,9 @@ function ChatPlaygroundTab({ slug }: { slug: string }) {
         <div className="px-4 py-1.5 border-t border-border text-xs text-muted-foreground flex gap-3">
           <span>Prompt: {tokenUsage.prompt}</span>
           <span>Completion: {tokenUsage.completion}</span>
-          <span>Chi phí: {Number(tokenUsage.costVnd).toLocaleString('vi-VN')}đ</span>
+          <span>
+            Chi phí: {Number(tokenUsage.costVnd).toLocaleString("vi-VN")}đ
+          </span>
         </div>
       )}
 
@@ -179,11 +187,15 @@ function PlaygroundTab({
   slug,
   apiFields,
   examplePrompt,
+  modelImage,
+  pricingTiers,
 }: {
   category: string;
   slug: string;
   apiFields?: ModelPlaygroundField[];
   examplePrompt?: string;
+  modelImage?: string;
+  pricingTiers?: ModelDetail["modelPricingTiers"];
 }) {
   const fields =
     apiFields && apiFields.length > 0
@@ -239,14 +251,17 @@ function PlaygroundTab({
           ? "audio"
           : "text";
 
-  const credits =
-    category === "image"
-      ? 8
+  const USD_TO_VND = 25_000;
+  const tier = pricingTiers?.[0];
+  const priceLabel = tier
+    ? `${Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
+    : category === "image"
+      ? "8 credits"
       : category === "video"
-        ? 20
+        ? "20 credits"
         : category === "music"
-          ? 10
-          : 2;
+          ? "10 credits"
+          : "2 credits";
 
   const handleRun = async () => {
     if (isRunning) return;
@@ -255,18 +270,26 @@ function PlaygroundTab({
     setOutputUrl(null);
     try {
       if (category === "image") {
-        const res = await api.post("/chat/image-playground", {
-          model: slug,
-          prompt: formValues.prompt ?? "",
-          aspect_ratio: formValues.aspect_ratio ?? "1:1",
-          resolution: formValues.resolution ?? "1K",
-        }, { timeout: 150000 });
+        const res = await api.post(
+          "/chat/image-playground",
+          {
+            model: slug,
+            prompt: formValues.prompt ?? "",
+            aspect_ratio: formValues.aspect_ratio ?? "1:1",
+            resolution: formValues.resolution ?? "1K",
+          },
+          { timeout: 150000 },
+        );
         setOutputUrl(res.data.data?.url ?? null);
       } else {
         setRunError("Video/music generation coming soon.");
       }
-    } catch (err: any) {
-      setRunError(err?.response?.data?.message ?? err.message ?? "Generation failed");
+    } catch (err: unknown) {
+      setRunError(
+        err instanceof AxiosError
+          ? (err.response?.data?.message ?? err.message)
+          : "Generation failed",
+      );
     } finally {
       setIsRunning(false);
     }
@@ -421,7 +444,9 @@ function PlaygroundTab({
                 type="button"
                 onClick={() => {
                   const init: Record<string, string> = {};
-                  fields.forEach((f) => { if (f.defaultValue) init[f.name] = f.defaultValue; });
+                  fields.forEach((f) => {
+                    if (f.defaultValue) init[f.name] = f.defaultValue;
+                  });
                   setFormValues(init);
                   setOutputUrl(null);
                   setRunError(null);
@@ -441,7 +466,7 @@ function PlaygroundTab({
                 ) : (
                   <Zap className="size-4" />
                 )}
-                {credits} Run
+                {priceLabel} · Run
               </button>
             </div>
           </div>
@@ -483,16 +508,51 @@ function PlaygroundTab({
 
         {/* Output area */}
         {runError && (
-          <p className="mb-3 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{runError}</p>
+          <p className="mb-3 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {runError}
+          </p>
         )}
-        <div className="flex aspect-video items-center justify-center rounded-xl border border-border bg-muted/20 overflow-hidden">
+        <div className="group/output relative flex aspect-video items-center justify-center rounded-xl border border-border bg-muted/20 overflow-hidden">
           {outputUrl && outputType === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={outputUrl} alt="Generated" className="h-full w-full object-contain" />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={outputUrl}
+                alt="Generated"
+                className="h-full w-full object-contain transition-transform duration-300 group-hover/output:scale-105"
+              />
+              {/* Download overlay on hover */}
+              <Link
+                href={outputUrl}
+                download
+                className="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-2 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition-all hover:bg-black/80 group-hover/output:opacity-100"
+              >
+                <Download className="size-3.5" />
+                Tải ảnh
+              </Link>
+            </>
           ) : isRunning ? (
             <div className="flex flex-col items-center gap-3">
               <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <p className="text-sm text-muted-foreground">Đang tạo ảnh...</p>
+            </div>
+          ) : modelImage && (outputType === "image" || outputType === "video") ? (
+            <div className="group/preview relative h-full w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={modelImage}
+                alt="Sample preview"
+                className="h-full w-full object-contain transition-transform duration-300 group-hover/preview:scale-105"
+              />
+              {/* Download overlay on hover */}
+              <a
+                href={modelImage}
+                download
+                className="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-2 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition-all hover:bg-black/80 group-hover/preview:opacity-100"
+              >
+                <Download className="size-3.5" />
+                Tải ảnh
+              </a>
             </div>
           ) : (
             <div className="text-center">
@@ -503,13 +563,45 @@ function PlaygroundTab({
             </div>
           )}
         </div>
+
+        {/* Action bar below preview */}
+        <div className="mt-3 flex items-center justify-between">
+          {outputUrl ? (
+            <a
+              href={outputUrl}
+              download
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              <Download className="size-4" />
+              Tải ảnh
+            </a>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed">
+              <Download className="size-4" />
+              Tải ảnh
+            </span>
+          )}
+          <Link
+            href="/logs"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            <History className="size-4" />
+            Xem lịch sử
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
 
 /* ─── Examples Tab ─── */
-function ExamplesTab({ category, onUseExample }: { category: string; onUseExample?: (prompt: string) => void }) {
+function ExamplesTab({
+  category,
+  onUseExample,
+}: {
+  category: string;
+  onUseExample?: (prompt: string) => void;
+}) {
   const examples = getExamplesForCategory(category);
 
   return (
@@ -530,7 +622,9 @@ function ExamplesTab({ category, onUseExample }: { category: string; onUseExampl
               <p className="mb-1 text-sm font-bold text-foreground group-hover:text-primary">
                 {ex.title}
               </p>
-              <p className="mb-3 text-xs text-muted-foreground">{ex.description}</p>
+              <p className="mb-3 text-xs text-muted-foreground">
+                {ex.description}
+              </p>
               <p className="line-clamp-3 rounded-lg bg-background/60 p-3 text-xs text-foreground/70">
                 {ex.prompt}
               </p>
@@ -556,16 +650,16 @@ function ReadmeTab({
   category: string;
   pricing: string;
 }) {
-  const endpointPath = category === "image"
-    ? "/v1/images/generations"
-    : category === "video"
-    ? "/v1/videos/generations"
-    : category === "music"
-    ? "/v1/music/generations"
-    : "/v1/chat/completions";
+  const endpointPath =
+    category === "image"
+      ? "/v1/images/generations"
+      : category === "video"
+        ? "/v1/videos/generations"
+        : category === "music"
+          ? "/v1/music/generations"
+          : "/v1/chat/completions";
 
   const exampleBody = getRequestBodyExample(category, slug);
-
 
   return (
     <div className="p-6">
@@ -586,14 +680,18 @@ function ReadmeTab({
           </div>
 
           <div>
-            <h3 className="mb-3 text-base font-bold text-foreground">💰 Pricing</h3>
+            <h3 className="mb-3 text-base font-bold text-foreground">
+              💰 Pricing
+            </h3>
             <div className="rounded-lg border border-border bg-muted/20 p-4">
               <p className="text-sm text-foreground">{pricing}</p>
             </div>
           </div>
 
           <div>
-            <h3 className="mb-3 text-base font-bold text-foreground">🚀 Quick Start</h3>
+            <h3 className="mb-3 text-base font-bold text-foreground">
+              🚀 Quick Start
+            </h3>
             <ol className="space-y-1.5 text-sm text-muted-foreground">
               <li>1. Đăng ký tài khoản tại Operis Market</li>
               <li>2. Nạp credits vào tài khoản</li>
@@ -603,7 +701,9 @@ function ReadmeTab({
           </div>
 
           <div>
-            <h3 className="mb-3 text-base font-bold text-foreground">📡 API Endpoint</h3>
+            <h3 className="mb-3 text-base font-bold text-foreground">
+              📡 API Endpoint
+            </h3>
             <pre className="overflow-x-auto rounded-lg bg-background-secondary p-4 text-xs text-foreground">
               <code>{`POST ${endpointPath}
 Authorization: Bearer YOUR_API_KEY
@@ -613,7 +713,9 @@ ${exampleBody}`}</code>
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">⚡ Rate Limits</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">
+              ⚡ Rate Limits
+            </h3>
             <p className="text-sm text-muted-foreground">
               Free tier: 10 requests/minute. Paid tier: 100 requests/minute.
               Liên hệ hỗ trợ nếu bạn cần rate limit cao hơn.
@@ -621,7 +723,9 @@ ${exampleBody}`}</code>
           </div>
 
           <div>
-            <h3 className="mb-2 text-base font-bold text-foreground">🆘 Support</h3>
+            <h3 className="mb-2 text-base font-bold text-foreground">
+              🆘 Support
+            </h3>
             <p className="text-sm text-muted-foreground">
               Nếu bạn gặp vấn đề, liên hệ qua Discord hoặc email
               support@operis.market
@@ -841,7 +945,9 @@ export default function ModelDetailClient({
   const { data: model, isLoading } = useModelDetail(slug, initialData);
   const [activeTab, setActiveTab] = useState<Tab>("playground");
   const [copied, setCopied] = useState(false);
-  const [examplePrompt, setExamplePrompt] = useState<string | undefined>(undefined);
+  const [examplePrompt, setExamplePrompt] = useState<string | undefined>(
+    undefined,
+  );
 
   const handleCopyName = () => {
     if (!model) return;
@@ -1026,7 +1132,9 @@ export default function ModelDetailClient({
           <>
             <div
               id="playground"
-              ref={(el) => { sectionRefs.current.playground = el; }}
+              ref={(el) => {
+                sectionRefs.current.playground = el;
+              }}
               className="scroll-mt-[120px]"
             >
               <PlaygroundTab
@@ -1034,24 +1142,33 @@ export default function ModelDetailClient({
                 slug={model.slug}
                 apiFields={model.modelPlaygroundFields}
                 examplePrompt={examplePrompt}
+                modelImage={model.image}
+                pricingTiers={model.modelPricingTiers}
               />
             </div>
             <div
               id="examples"
-              ref={(el) => { sectionRefs.current.examples = el; }}
+              ref={(el) => {
+                sectionRefs.current.examples = el;
+              }}
               className="scroll-mt-[120px] border-t border-border"
             >
               <ExamplesTab
                 category={model.category}
                 onUseExample={(prompt) => {
                   setExamplePrompt(prompt);
-                  sectionRefs.current.playground?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  sectionRefs.current.playground?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
                 }}
               />
             </div>
             <div
               id="readme"
-              ref={(el) => { sectionRefs.current.readme = el; }}
+              ref={(el) => {
+                sectionRefs.current.readme = el;
+              }}
               className="scroll-mt-[120px] border-t border-border"
             >
               <ReadmeTab

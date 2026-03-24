@@ -48,7 +48,7 @@ export default function ProfilePage() {
     `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name ?? "")}&background=random&color=fff&size=128&bold=true`;
 
   const handleSave = () => {
-    const trimmed = (dirty ? name : profile?.name ?? "").trim();
+    const trimmed = (dirty ? name : (profile?.name ?? "")).trim();
     if (!trimmed) return;
     updateProfile.mutate(
       { name: trimmed },
@@ -73,7 +73,9 @@ export default function ProfilePage() {
           setNewPassword("");
         },
         onError: (error) => {
-          const axiosErr = error as { response?: { data?: { message?: string } } };
+          const axiosErr = error as {
+            response?: { data?: { message?: string } };
+          };
           setPwError(
             axiosErr?.response?.data?.message ?? "Đổi mật khẩu thất bại",
           );
@@ -149,6 +151,7 @@ export default function ProfilePage() {
                 value={profile?.email ?? ""}
                 disabled
                 className="h-10 w-full rounded-lg border border-border bg-muted px-4 text-sm text-muted-foreground sm:max-w-md"
+                title="Nhập email"
               />
               <p className="mt-1 text-xs text-muted-foreground">
                 Email không thể thay đổi
@@ -158,7 +161,9 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={!dirty || !displayName.trim() || updateProfile.isPending}
+              disabled={
+                !dirty || !displayName.trim() || updateProfile.isPending
+              }
               className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {updateProfile.isPending ? (
@@ -207,9 +212,7 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {pwError && (
-                <p className="text-sm text-destructive">{pwError}</p>
-              )}
+              {pwError && <p className="text-sm text-destructive">{pwError}</p>}
               {pwSuccess && (
                 <p className="text-sm text-emerald-600 dark:text-emerald-600 dark:text-emerald-400">
                   {pwSuccess}
@@ -220,9 +223,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleChangePassword}
                 disabled={
-                  !currentPassword ||
-                  !newPassword ||
-                  changePassword.isPending
+                  !currentPassword || !newPassword || changePassword.isPending
                 }
                 className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
