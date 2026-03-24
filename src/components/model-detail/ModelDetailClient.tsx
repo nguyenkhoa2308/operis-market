@@ -220,16 +220,22 @@ function PlaygroundTab({
           category as "image" | "video" | "music" | "chat",
         );
 
-  // Remove resolution options that don't have a matching pricing tier
+  // Filter resolution field based on pricing tiers:
+  // - nano-banana-2: tiers ["1K","2K","4K"] → show all 3 options
+  // - nano-banana-pro: tiers ["2K","4K"] → remove 1K option
+  // - grok-imagine: tiers ["text-to-image","image-to-image"] → remove resolution field (not supported)
   const tierNames = pricingTiers?.map((t) => t.name) ?? [];
+  const resolutionValues = ["1K", "2K", "4K"];
+  const hasResolutionTiers = tierNames.some((n) => resolutionValues.includes(n));
   const filteredFields =
     tierNames.length > 0
-      ? fields.map((f) => {
-          if (f.name !== "resolution" || !f.options) return f;
-          const filtered = f.options.filter((o) => tierNames.includes(o.value));
-          if (filtered.length === 0) return f;
-          return { ...f, options: filtered, defaultValue: filtered[0]?.value ?? f.defaultValue };
-        })
+      ? fields
+          .filter((f) => !(f.name === "resolution" && !hasResolutionTiers))
+          .map((f) => {
+            if (f.name !== "resolution" || !f.options || !hasResolutionTiers) return f;
+            const filtered = f.options.filter((o) => tierNames.includes(o.value));
+            return { ...f, options: filtered, defaultValue: filtered[0]?.value ?? f.defaultValue };
+          })
       : fields;
 
   const [formValues, setFormValues] = useState<Record<string, string>>(() => {
