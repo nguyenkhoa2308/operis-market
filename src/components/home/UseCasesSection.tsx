@@ -4,14 +4,14 @@ import { ArrowRight } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
 
 const useCases = [
-  {
-    id: 1,
-    title: "API Tạo Video bằng AI",
-    description:
-      "Tạo video chất lượng cao với Veo 3.1, Veo 3.1 Fast và Runway Aleph. Chuyển động mượt mà, cảnh thực tế, âm thanh đồng bộ và điều khiển camera chính xác.",
-    image: "/images/home/use_01.webp",
-    reverse: false,
-  },
+  // {
+  //   id: 1,
+  //   title: "API Tạo Video bằng AI",
+  //   description:
+  //     "Tạo video chất lượng cao với Veo 3.1, Veo 3.1 Fast và Runway Aleph. Chuyển động mượt mà, cảnh thực tế, âm thanh đồng bộ và điều khiển camera chính xác.",
+  //   image: "/images/home/use_01.webp",
+  //   reverse: false,
+  // },
   {
     id: 2,
     title: "API Tạo Ảnh bằng AI",
@@ -20,14 +20,14 @@ const useCases = [
     image: "/images/home/use_02.webp",
     reverse: true,
   },
-  {
-    id: 3,
-    title: "API Tạo Nhạc bằng AI",
-    description:
-      "Tạo nhạc chất lượng cao với Suno API hỗ trợ V3.5, V4 và V4.5. Giọng hát nâng cao, âm thanh phong phú và prompt thông minh — dài tới 8 phút.",
-    image: "/images/home/use_03.webp",
-    reverse: false,
-  },
+  // {
+  //   id: 3,
+  //   title: "API Tạo Nhạc bằng AI",
+  //   description:
+  //     "Tạo nhạc chất lượng cao với Suno API hỗ trợ V3.5, V4 và V4.5. Giọng hát nâng cao, âm thanh phong phú và prompt thông minh — dài tới 8 phút.",
+  //   image: "/images/home/use_03.webp",
+  //   reverse: false,
+  // },
   {
     id: 4,
     title: "API LLM & AI Chat",

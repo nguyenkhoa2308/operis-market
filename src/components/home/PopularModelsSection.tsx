@@ -1,61 +1,61 @@
 import Link from "next/link";
-import { Video, Image, Music, ExternalLink } from "lucide-react";
+import { MessageSquare, Image, Code, ExternalLink } from "lucide-react";
 import FadeIn from "@/components/shared/FadeIn";
 
 const models = [
   {
     id: 1,
-    name: "Google Veo 3.1",
+    name: "Gemini 3 Pro",
     description:
-      "Model video AI mới nhất của Google DeepMind với chuyển động điện ảnh, tuân thủ prompt tốt và âm thanh đồng bộ ở độ phân giải 1080p.",
-    category: "Tạo Video",
-    icon: Video,
-    href: "/market/veo-3-1",
+      "Model mạnh nhất của Google với khả năng suy luận, lập trình và hiểu ngữ cảnh dài lên đến 1M tokens.",
+    category: "Chat AI",
+    icon: MessageSquare,
+    href: "/market/gemini-3-pro",
   },
   {
     id: 2,
-    name: "Runway Aleph",
+    name: "Kimi K2 Thinking",
     description:
-      "Model video in-context của Runway cho phép chỉnh sửa đa tác vụ — thêm/xoá vật thể, đổi ánh sáng, thay góc quay bằng prompt.",
-    category: "Tạo Video",
-    icon: Video,
-    href: "/market/runway-aleph",
+      "Model suy luận chain-of-thought của Moonshot, chuyên giải quyết các bài toán phức tạp với độ chính xác cao.",
+    category: "Chat AI",
+    icon: MessageSquare,
+    href: "/market/kimi-k2-thinking",
   },
   {
     id: 3,
-    name: "Suno API",
+    name: "Kimi K2.5",
     description:
-      "Tạo nhạc nâng cao với giọng hát chân thực, căn chỉnh lời-nhạc chính xác và sản xuất đa thể loại chất lượng cao.",
-    category: "Tạo Nhạc",
-    icon: Music,
-    href: "/market/suno-api",
+      "Model đa ngôn ngữ của Moonshot với cửa sổ ngữ cảnh 256K, hỗ trợ lập trình và hiểu văn bản xuất sắc.",
+    category: "Chat AI",
+    icon: MessageSquare,
+    href: "/market/kimi-k2.5",
   },
   {
     id: 4,
-    name: "4o Image API",
+    name: "ByteDance Seed Code",
     description:
-      "Model ảnh GPT-4o của OpenAI cho hình ảnh chất lượng cao với render chữ chính xác và kiểm soát phong cách linh hoạt.",
-    category: "Tạo Ảnh",
-    icon: Image,
-    href: "/market/4o-image",
+      "Model chuyên biệt cho lập trình của ByteDance — tối ưu cho sinh code, auto-complete và debug hiệu quả.",
+    category: "Lập trình",
+    icon: Code,
+    href: "/market/bytedance-seed-code",
   },
   {
     id: 5,
-    name: "Flux.1 Kontext",
+    name: "Grok Imagine",
     description:
-      "Model ảnh của Black Forest Labs cho cảnh sống động, mạch lạc với tính nhất quán chủ thể cao và kết quả lặp lại được.",
+      "Tạo ảnh AI phong cách nghệ thuật độc đáo từ xAI, hiểu prompt phức tạp và cho kết quả sáng tạo.",
     category: "Tạo Ảnh",
     icon: Image,
-    href: "/market/flux-kontext",
+    href: "/market/grok-imagine",
   },
   {
     id: 6,
-    name: "Nano Banana",
+    name: "Nano Banana Pro",
     description:
-      "Tạo và chỉnh sửa ảnh AI nhanh, chính xác với tính nhất quán hình ảnh mạnh và mô phỏng vật lý chân thực.",
+      "Phiên bản Pro với độ phân giải cao và photorealism vượt trội, phù hợp cho thiết kế chuyên nghiệp.",
     category: "Tạo Ảnh",
     icon: Image,
-    href: "/market/nano-banana",
+    href: "/market/nano-banana-pro",
   },
 ];
 
