@@ -39,6 +39,7 @@ import {
   CHAT_BASIC_CODE,
   CHAT_STREAM_CODE,
   IMAGE_BASIC_CODE,
+  IMAGE_I2I_CODE,
   MODELS_CODE,
   EXAMPLE_CHATBOT_CODE,
   QUICKSTART_STEPS,
@@ -68,6 +69,7 @@ const NAV_SECTIONS: DocSection[] = [
     label: "Image Generation",
     children: [
       { id: "image-basic", label: "Tạo ảnh" },
+      { id: "image-to-image", label: "Image-to-Image" },
       { id: "image-models", label: "Image Models" },
     ],
   },
@@ -368,6 +370,22 @@ export default function DocsPage() {
                     {IMAGE_NOTES.map((note) => (
                       <li key={note}>{note}</li>
                     ))}
+                  </ul>
+                </NoteBox>
+              </SubSection>
+
+              <SubSection id="image-to-image" title="Image-to-Image (chỉnh sửa ảnh)">
+                <p className="text-sm text-muted-foreground">
+                  Gửi kèm <InlineCode>image_input</InlineCode> (mảng URL ảnh) để chỉnh sửa hoặc tham chiếu ảnh có sẵn.
+                  Giới hạn: nano-banana-2 tối đa 14 ảnh, nano-banana-pro tối đa 8 ảnh, grok-imagine tối đa 1 ảnh. Kích thước mỗi ảnh tối đa 30MB. Định dạng: JPEG, PNG, WebP.
+                </p>
+                <CodeBlock tabs={IMAGE_I2I_CODE} />
+
+                <NoteBox title="Lưu ý">
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                    <li>Nếu không gửi <InlineCode>image_input</InlineCode>, API hoạt động như text-to-image bình thường</li>
+                    <li>URL ảnh phải truy cập được công khai (public URL) để hệ thống có thể tải về</li>
+                    <li>grok-imagine khi có <InlineCode>image_input</InlineCode> sẽ tự động chuyển sang chế độ image-to-image</li>
                   </ul>
                 </NoteBox>
               </SubSection>

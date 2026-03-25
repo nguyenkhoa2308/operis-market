@@ -25,6 +25,7 @@ const chatFields: PlaygroundField[] = [
 
 const imageFields: PlaygroundField[] = [
   { name: "prompt", label: "Prompt", type: "textarea", description: "Describe the image", required: true, placeholder: "A sunset over mountains..." },
+  { name: "image_input", label: "Ảnh tham chiếu", type: "file", description: "Upload ảnh để chỉnh sửa hoặc tham chiếu (tùy chọn)", required: false },
   {
     name: "aspect_ratio", label: "Tỷ lệ", type: "select", description: "Image aspect ratio", defaultValue: "1:1",
     options: [
@@ -144,7 +145,7 @@ export function getExamplesForCategory(category: string): ExampleItem[] {
 export function getRequestBodyExample(category: string, slug: string): string {
   switch (category) {
     case "image":
-      return JSON.stringify({ model: slug, prompt: "A sunset over mountains", aspect_ratio: "1:1", resolution: "1K" }, null, 2);
+      return JSON.stringify({ model: slug, prompt: "A sunset over mountains", aspect_ratio: "1:1", resolution: "1K", image_input: ["https://example.com/reference.jpg"] }, null, 2);
     case "video":
       return JSON.stringify({ model: slug, prompt: "A drone flying over a city", duration: 5 }, null, 2);
     case "music":

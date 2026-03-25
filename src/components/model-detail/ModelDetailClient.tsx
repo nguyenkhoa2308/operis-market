@@ -20,6 +20,8 @@ import {
   Loader2,
   Download,
   History,
+  Upload,
+  X,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import type { ModelDetail, ModelPlaygroundField } from "@/types/market";
@@ -219,9 +221,28 @@ function PlaygroundTab({
           slug,
           category as "image" | "video" | "music" | "chat",
         );
+
+  // Filter resolution field based on pricing tiers:
+  // - nano-banana-2: tiers ["1K","2K","4K"] → show all 3 options
+  // - nano-banana-pro: tiers ["2K","4K"] → remove 1K option
+  // - grok-imagine: tiers ["text-to-image","image-to-image"] → remove resolution field (not supported)
+  const tierNames = pricingTiers?.map((t) => t.name) ?? [];
+  const resolutionValues = ["1K", "2K", "4K"];
+  const hasResolutionTiers = tierNames.some((n) => resolutionValues.includes(n));
+  const filteredFields =
+    tierNames.length > 0
+      ? fields
+          .filter((f) => !(f.name === "resolution" && !hasResolutionTiers))
+          .map((f) => {
+            if (f.name !== "resolution" || !f.options || !hasResolutionTiers) return f;
+            const filtered = f.options.filter((o) => tierNames.includes(o.value));
+            return { ...f, options: filtered, defaultValue: filtered[0]?.value ?? f.defaultValue };
+          })
+      : fields;
+
   const [formValues, setFormValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    fields.forEach((f) => {
+    filteredFields.forEach((f) => {
       if (f.defaultValue) init[f.name] = f.defaultValue;
     });
     return init;
@@ -238,6 +259,9 @@ function PlaygroundTab({
   const [isRunning, setIsRunning] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (category === "chat") {
     return <ChatPlaygroundTab slug={slug} />;
@@ -253,7 +277,12 @@ function PlaygroundTab({
           : "text";
 
   // Use shared USD_TO_VND from pricing-constants
-  const tier = pricingTiers?.[0];
+  // For image models, match tier by resolution (tier.name = "1K"/"2K"/"4K")
+  const selectedResolution = formValues.resolution;
+  const tier =
+    pricingTiers && selectedResolution
+      ? pricingTiers.find((t) => t.name === selectedResolution) ?? pricingTiers[0]
+      : pricingTiers?.[0];
   const priceLabel = tier
     ? `${Math.round(Number(tier.inputPrice) * USD_TO_VND).toLocaleString("vi-VN")}đ`
     : category === "image"
@@ -271,14 +300,18 @@ function PlaygroundTab({
     setOutputUrl(null);
     try {
       if (category === "image") {
+        const payload: Record<string, any> = {
+          model: slug,
+          prompt: formValues.prompt ?? "",
+          aspect_ratio: formValues.aspect_ratio ?? "1:1",
+          resolution: formValues.resolution ?? "1K",
+        };
+        if (uploadedImages.length > 0) {
+          payload.image_input = uploadedImages;
+        }
         const res = await api.post(
           "/chat/image-playground",
-          {
-            model: slug,
-            prompt: formValues.prompt ?? "",
-            aspect_ratio: formValues.aspect_ratio ?? "1:1",
-            resolution: formValues.resolution ?? "1K",
-          },
+          payload,
           { timeout: 150000 },
         );
         setOutputUrl(res.data.data?.url ?? null);
@@ -322,7 +355,7 @@ function PlaygroundTab({
 
         {inputMode === "form" ? (
           <div className="space-y-6">
-            {fields.map((field) => (
+            {filteredFields.map((field) => (
               <div key={field.name}>
                 <label className="mb-1.5 block text-sm font-semibold text-foreground">
                   {field.label}
@@ -408,10 +441,66 @@ function PlaygroundTab({
                 )}
 
                 {field.type === "file" && (
-                  <div className="rounded-lg border-2 border-dashed border-border bg-background-secondary px-4 py-8 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Kéo thả hoặc click để upload file
-                    </p>
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files?.length) return;
+                        setIsUploading(true);
+                        try {
+                          for (const file of Array.from(files)) {
+                            const fd = new FormData();
+                            fd.append("file", file);
+                            const res = await api.post("/chat/upload", fd, {
+                              headers: { "Content-Type": "multipart/form-data" },
+                            });
+                            const url = res.data.data?.url;
+                            if (url) {
+                              setUploadedImages((prev) => [...prev, url]);
+                            }
+                          }
+                        } catch {
+                          setRunError("Upload ảnh thất bại");
+                        } finally {
+                          setIsUploading(false);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-background-secondary px-4 py-6 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Upload className="size-4" />
+                      )}
+                      {isUploading ? "Đang upload..." : "Kéo thả hoặc click để upload ảnh"}
+                    </button>
+                    {uploadedImages.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {uploadedImages.map((url, i) => (
+                          <div key={i} className="group relative size-16 overflow-hidden rounded-lg border border-border">
+                            <img src={url} alt={`ref-${i}`} className="size-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setUploadedImages((prev) => prev.filter((_, j) => j !== i))}
+                              className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -445,12 +534,13 @@ function PlaygroundTab({
                 type="button"
                 onClick={() => {
                   const init: Record<string, string> = {};
-                  fields.forEach((f) => {
+                  filteredFields.forEach((f) => {
                     if (f.defaultValue) init[f.name] = f.defaultValue;
                   });
                   setFormValues(init);
                   setOutputUrl(null);
                   setRunError(null);
+                  setUploadedImages([]);
                 }}
                 className="cursor-pointer rounded-lg border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
               >
@@ -740,6 +830,35 @@ Authorization: Bearer YOUR_API_KEY
 ${exampleBody}`}</code>
             </pre>
           </div>
+
+          {category === "image" && (
+            <div>
+              <h3 className="mb-3 text-base font-bold text-foreground">
+                🖼️ Image-to-Image
+              </h3>
+              <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                Gửi kèm <code className="rounded bg-muted/50 px-1.5 py-0.5 text-xs font-mono text-foreground">image_input</code> (mảng URL ảnh) để chỉnh sửa hoặc tham chiếu ảnh có sẵn.
+                Nếu không gửi <code className="rounded bg-muted/50 px-1.5 py-0.5 text-xs font-mono text-foreground">image_input</code>, API hoạt động như text-to-image bình thường.
+              </p>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p><strong className="text-foreground">nano-banana-2:</strong> tối đa 14 ảnh, 30MB/ảnh</p>
+                <p><strong className="text-foreground">nano-banana-pro:</strong> tối đa 8 ảnh, 30MB/ảnh</p>
+                <p><strong className="text-foreground">grok-imagine:</strong> tối đa 1 ảnh, 30MB/ảnh</p>
+              </div>
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-background-secondary p-4 text-xs text-foreground">
+                <code>{JSON.stringify({
+                  model: slug,
+                  prompt: "Turn this photo into a cartoon illustration",
+                  aspect_ratio: "1:1",
+                  resolution: "2K",
+                  image_input: ["https://example.com/my-photo.jpg"],
+                }, null, 2)}</code>
+              </pre>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Định dạng ảnh hỗ trợ: JPEG, PNG, WebP. URL ảnh phải truy cập được công khai.
+              </p>
+            </div>
+          )}
 
           <div>
             <h3 className="mb-2 text-base font-bold text-foreground">

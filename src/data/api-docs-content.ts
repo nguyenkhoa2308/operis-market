@@ -265,6 +265,70 @@ console.log("Image URL:", data.data[0].url);`,
   },
 ];
 
+export const IMAGE_I2I_CODE: CodeTab[] = [
+  {
+    label: "cURL",
+    code: `# Image-to-Image: chỉnh sửa ảnh dựa trên ảnh tham chiếu
+# nano-banana-2: tối đa 14 ảnh | nano-banana-pro: tối đa 8 ảnh | grok-imagine: tối đa 1 ảnh
+curl -X POST ${BASE_URL}/v1/images/generations \\
+  -H "Authorization: Bearer $OPERIS_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "nano-banana-2",
+    "prompt": "Turn this photo into a cartoon illustration style",
+    "resolution": "2K",
+    "aspect_ratio": "1:1",
+    "image_input": ["https://example.com/my-photo.jpg"]
+  }'`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+# Image-to-Image: chỉnh sửa ảnh dựa trên ảnh tham chiếu
+response = requests.post(
+    "${BASE_URL}/v1/images/generations",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "nano-banana-2",
+        "prompt": "Turn this photo into a cartoon illustration style",
+        "resolution": "2K",
+        "aspect_ratio": "1:1",
+        "image_input": ["https://example.com/my-photo.jpg"],
+    },
+    timeout=300,
+)
+
+data = response.json()["data"]
+for img in data["data"]:
+    print(f"URL: {img['url']}")`,
+  },
+  {
+    label: "JavaScript",
+    code: `// Image-to-Image: chỉnh sửa ảnh dựa trên ảnh tham chiếu
+const response = await fetch("${BASE_URL}/v1/images/generations", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "nano-banana-2",
+    prompt: "Turn this photo into a cartoon illustration style",
+    resolution: "2K",
+    aspect_ratio: "1:1",
+    image_input: ["https://example.com/my-photo.jpg"],
+  }),
+});
+
+const { data } = await response.json();
+console.log("Image URL:", data.data[0].url);`,
+  },
+];
+
 export const MODELS_CODE: CodeTab[] = [
   {
     label: "cURL",
