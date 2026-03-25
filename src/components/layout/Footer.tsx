@@ -4,9 +4,9 @@ const footerLinks = [
   {
     title: "Sản phẩm",
     links: [
-      { label: "AI Video API", href: "/market?category=video" },
+      // { label: "AI Video API", href: "/market?category=video" },
       { label: "AI Image API", href: "/market?category=image" },
-      { label: "AI Music API", href: "/market?category=music" },
+      // { label: "AI Music API", href: "/market?category=music" },
       { label: "AI Chat API", href: "/market?category=chat" },
     ],
   },

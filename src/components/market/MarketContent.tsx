@@ -39,9 +39,9 @@ const categoryColors: Record<
 };
 
 const categoryLabels: Record<string, string> = {
-  video: "Video",
+  // video: "Video",
   image: "Image",
-  music: "Music",
+  // music: "Music",
   chat: "Chat",
 };
 
