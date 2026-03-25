@@ -10,7 +10,7 @@ const models = [
       "Model mạnh nhất của Google với khả năng suy luận, lập trình và hiểu ngữ cảnh dài lên đến 1M tokens.",
     category: "Chat AI",
     icon: MessageSquare,
-    href: "/market/gemini-3-pro",
+    href: "/gemini-3-pro",
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const models = [
       "Model suy luận chain-of-thought của Moonshot, chuyên giải quyết các bài toán phức tạp với độ chính xác cao.",
     category: "Chat AI",
     icon: MessageSquare,
-    href: "/market/kimi-k2-thinking",
+    href: "/kimi-k2-thinking",
   },
   {
     id: 3,
@@ -28,7 +28,7 @@ const models = [
       "Model đa ngôn ngữ của Moonshot với cửa sổ ngữ cảnh 256K, hỗ trợ lập trình và hiểu văn bản xuất sắc.",
     category: "Chat AI",
     icon: MessageSquare,
-    href: "/market/kimi-k2.5",
+    href: "/kimi-k2.5",
   },
   {
     id: 4,
@@ -37,7 +37,7 @@ const models = [
       "Model chuyên biệt cho lập trình của ByteDance — tối ưu cho sinh code, auto-complete và debug hiệu quả.",
     category: "Lập trình",
     icon: Code,
-    href: "/market/bytedance-seed-code",
+    href: "/bytedance-seed-code",
   },
   {
     id: 5,
@@ -46,7 +46,7 @@ const models = [
       "Tạo ảnh AI phong cách nghệ thuật độc đáo từ xAI, hiểu prompt phức tạp và cho kết quả sáng tạo.",
     category: "Tạo Ảnh",
     icon: Image,
-    href: "/market/grok-imagine",
+    href: "/grok-imagine",
   },
   {
     id: 6,
@@ -55,7 +55,7 @@ const models = [
       "Phiên bản Pro với độ phân giải cao và photorealism vượt trội, phù hợp cho thiết kế chuyên nghiệp.",
     category: "Tạo Ảnh",
     icon: Image,
-    href: "/market/nano-banana-pro",
+    href: "/nano-banana-pro",
   },
 ];
 
