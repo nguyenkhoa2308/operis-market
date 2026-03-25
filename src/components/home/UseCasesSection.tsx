@@ -34,7 +34,7 @@ const useCases = [
     description:
       "Tích hợp LLM và AI Chat API tiên tiến cho hội thoại tự nhiên, hỗ trợ lập trình và trả lời dựa trên tri thức.",
     image: "/images/home/use_04.webp",
-    reverse: true,
+    reverse: false,
   },
 ];
 

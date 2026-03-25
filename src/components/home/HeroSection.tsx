@@ -46,14 +46,14 @@ export default function HeroSection() {
         <div className="flex flex-col gap-6">
           <FadeIn delay={0} duration={700}>
             <h1 className="mx-auto bg-gradient-to-br from-emerald-500 to-emerald-700 bg-clip-text pt-4 text-center text-3xl font-[800] !leading-[130%] tracking-tight text-transparent dark:from-emerald-300 dark:to-emerald-500 sm:text-4xl md:text-5xl lg:max-w-5xl lg:text-6xl">
-              Truy cập các Model AI Video, Ảnh & Nhạc hàng đầu trong một API
+              Truy cập các Model AI, Ảnh hàng đầu trong một API
             </h1>
           </FadeIn>
 
           <FadeIn delay={150}>
             <p className="mx-auto text-center font-normal leading-7 text-muted-foreground text-base lg:max-w-2xl">
-              Tất cả API AI cho video, ảnh, nhạc và chat — chi phí thấp, tốc độ
-              nhanh, thân thiện với lập trình viên.
+              Tất cả API AI cho ảnh và chat — chi phí thấp, tốc độ nhanh, thân
+              thiện với lập trình viên.
             </p>
           </FadeIn>
 
